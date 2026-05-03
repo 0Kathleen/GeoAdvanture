@@ -27,18 +27,16 @@ enum NotebookTypography {
         static let bodyColor = UIColor(red: 0x53 / 255, green: 0x39 / 255, blue: 0x36 / 255, alpha: 1)
 
         static let titleFont: UIFont = {
-            loadFont(candidates: ["FZCKJW--GB1-0"], size: 16, fallbackWeight: .medium)
+            loadFont(candidates: ["FZCKJW--GB1-0"], size: 18, fallbackWeight: .medium)
         }()
 
         static let bodyFont: UIFont = {
             loadFont(candidates: [
-                "STSongti-SC-Regular",
+                "SourceHanSerifCN-Medium",
                 "STSongti-SC-Medium",
-                "STSongti-TC-Regular",
                 "Songti SC",
-                "Songti TC",
                 "PingFangSC-Regular"
-            ], size: 12, fallbackWeight: .regular)
+            ], size: 15, fallbackWeight: .regular)
         }()
 
         static let titleContentSpacing: CGFloat = 5
@@ -50,6 +48,7 @@ enum NotebookTypography {
         static func attributedBody(_ plainText: String) -> NSAttributedString {
             let ps = NSMutableParagraphStyle()
             ps.lineBreakMode = .byWordWrapping
+            ps.lineSpacing = 6 // 增加行间距，使文本看起来更正常舒适
             return NSAttributedString(string: plainText, attributes: [
                 .font: bodyFont,
                 .foregroundColor: bodyColor,

@@ -27,8 +27,17 @@ class HomeScene:SKScene{
             }
             nodeAtPoint.run(SKAction.sequence([scaleDown, scaleUp, notify]))
             return
+        } else if nodeAtPoint.name == "MedalButtonNode" {
+            let scaleDown = SKAction.scale(to: 0.9, duration: 0.1)
+            let scaleUp = SKAction.scale(to: 1.0, duration: 0.1)
+            let notify = SKAction.run { [weak self] in
+                self?.HomeDelegate?.homeSceneDidTapMedal()
+            }
+            nodeAtPoint.run(SKAction.sequence([scaleDown, scaleUp, notify]))
+            return
         }
         
+        // 进入笔记本
         guard let (node, index) = layerLabelNode(at: location) else { return }
         let scaleUp = SKAction.scale(by: 1.2, duration: 0.2)
         let scaleDown = SKAction.scale(by: 1/1.2, duration: 0.2)
@@ -56,13 +65,14 @@ class HomeScene:SKScene{
     
     override func didMove(to view: SKView) {
         setupLaborNode()
+        setupMedalNode()
     }
     
     private func setupLaborNode() {
         let laborNode = SKSpriteNode(imageNamed: "LaborButton")
         laborNode.name = "LaborButtonNode"
-        laborNode.size = CGSize(width: 80, height: 80)
-        let xPos = (self.size.width / 2) - 18 - (laborNode.size.width / 2)
+        laborNode.size = CGSize(width: 60, height: 80)
+        let xPos = (self.size.width / 2) - 32 - (laborNode.size.width / 2)
         let yPos = -(self.size.height / 2) + 90 + (laborNode.size.height / 2)
         laborNode.position = CGPoint(x: xPos, y: yPos)
         laborNode.zPosition = 100
@@ -74,5 +84,24 @@ class HomeScene:SKScene{
         let pulse = SKAction.sequence([scaleUp, scaleDown])
         laborNode.run(SKAction.repeatForever(pulse))
         addChild(laborNode)
+    }
+    
+    private func setupMedalNode() {
+        let medalNode = SKSpriteNode(imageNamed: "medalButton")
+        medalNode.name = "MedalButtonNode"
+        medalNode.size = CGSize(width: 60, height: 80)
+        // 放在地心实验室按钮上方
+        let xPos = (self.size.width / 2) - 32 - (medalNode.size.width / 2)
+        let yPos = -(self.size.height / 2) + 190 + (medalNode.size.height / 2)
+        medalNode.position = CGPoint(x: xPos, y: yPos)
+        medalNode.zPosition = 100
+        
+        let scaleUp = SKAction.scale(to: 1.1, duration: 1.5)
+        scaleUp.timingMode = .easeInEaseOut
+        let scaleDown = SKAction.scale(to: 1.0, duration: 1.5)
+        scaleDown.timingMode = .easeInEaseOut
+        let pulse = SKAction.sequence([scaleUp, scaleDown])
+        medalNode.run(SKAction.repeatForever(pulse))
+        addChild(medalNode)
     }
 }

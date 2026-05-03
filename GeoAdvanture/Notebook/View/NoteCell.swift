@@ -28,7 +28,7 @@ class NoteCell: UITableViewCell {
         selectionStyle = .none
 
         let style = NotebookTypography.ListCell.self
-        titleBackgroundImageView.contentMode = .scaleAspectFit
+        titleBackgroundImageView.contentMode = .scaleToFill
         titleBackgroundImageView.clipsToBounds = true
         titleBackgroundImageView.image = UIImage(named: style.contentTitleImageName)
 

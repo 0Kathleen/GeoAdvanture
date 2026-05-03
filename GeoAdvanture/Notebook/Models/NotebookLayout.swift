@@ -33,10 +33,10 @@ enum NotebookLayout {
 
     static var mainContentLeading: CGFloat = 25
     static var mainContentTop: CGFloat = 28
-    static var mainContentTrail: CGFloat = 15
+    static var mainContentTrail: CGFloat = 12
     static var mainContentBottom: CGFloat = 25
     static var leftContentWidth: CGFloat = 260
-    static let contentHorizontalInset: CGFloat = 18
+    static let contentHorizontalInset: CGFloat = 22
 
     static let leftViewSize = CGSize(width: 280, height: 260)
     static let circleDiameter: CGFloat = 140

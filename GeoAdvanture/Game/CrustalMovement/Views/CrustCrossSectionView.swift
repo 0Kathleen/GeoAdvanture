@@ -55,17 +55,35 @@ final class CrustCrossSectionView: UIView {
     }()
     
     // 把手和提示
-    private let leftHandle: UIImageView = {
-        let v = UIImageView(image: UIImage(named: "dragButton"))
-        v.contentMode = .scaleAspectFit
+    private let leftHandle: UIView = {
+        let v = UIView()
         v.isUserInteractionEnabled = true
+        let imgView = UIImageView(image: UIImage(named: "dragButton"))
+        imgView.contentMode = .scaleAspectFit
+        let label = UILabel()
+        label.text = "拖"
+        label.textColor = UIColor(red: 0x7A/255.0, green: 0x3D/255.0, blue: 0x2A/255.0, alpha: 1.0)
+        label.font = UIFont(name: "FZCuKaiS-R-GB", size: 24) ?? .systemFont(ofSize: 24, weight: .bold)
+        v.addSubview(imgView)
+        v.addSubview(label)
+        imgView.snp.makeConstraints { make in make.edges.equalToSuperview() }
+        label.snp.makeConstraints { make in make.center.equalToSuperview() }
         return v
     }()
     
-    private let rightHandle: UIImageView = {
-        let v = UIImageView(image: UIImage(named: "dragButton"))
-        v.contentMode = .scaleAspectFit
+    private let rightHandle: UIView = {
+        let v = UIView()
         v.isUserInteractionEnabled = true
+        let imgView = UIImageView(image: UIImage(named: "dragButton"))
+        imgView.contentMode = .scaleAspectFit
+        let label = UILabel()
+        label.text = "拖"
+        label.textColor = UIColor(red: 0x7A/255.0, green: 0x3D/255.0, blue: 0x2A/255.0, alpha: 1.0)
+        label.font = UIFont(name: "FZCuKaiS-R-GB", size: 24) ?? .systemFont(ofSize: 24, weight: .bold)
+        v.addSubview(imgView)
+        v.addSubview(label)
+        imgView.snp.makeConstraints { make in make.edges.equalToSuperview() }
+        label.snp.makeConstraints { make in make.center.equalToSuperview() }
         return v
     }()
     
@@ -138,13 +156,13 @@ final class CrustCrossSectionView: UIView {
         leftHandle.snp.makeConstraints { make in
             make.centerX.equalTo(leftPlateImageView)
             make.top.equalTo(mantleBackgroundView.snp.top).offset(20)
-            make.size.equalTo(CGSize(width: 60, height: 40))
+            make.size.equalTo(CGSize(width: 60, height: 45))
         }
         
         rightHandle.snp.makeConstraints { make in
             make.centerX.equalTo(rightPlateImageView)
             make.top.equalTo(mantleBackgroundView.snp.top).offset(20)
-            make.size.equalTo(CGSize(width: 60, height: 40))
+            make.size.equalTo(CGSize(width: 60, height: 45))
         }
         
         formationResultImageView.snp.makeConstraints { make in

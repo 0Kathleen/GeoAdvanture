@@ -46,16 +46,9 @@ public class AICompanionViewModel {
     /// 困惑判定阈值
     private let hesitationThreshold: TimeInterval = 10.0
     
-    private let systemPrompt = """
-    你是一个针对 8 岁儿童的地质学启蒙小导师，名叫 Geo。
-    你的语气必须要：
-    1. 充满亲和力、活泼可爱。
-    2. 绝对不能长篇大论，每次回答必须在一两句话内结束（总字数不超过30字）。
-    3. 鼓励为主，永远不要直接给出答案，而是引导孩子自己思考。
-    """
-    
     // MARK: - init
     private init() {
+        _ = LearningBehaviorStore.shared // 触发 Store 初始化以开始监听
         setupObservers()
         startMotionUpdates()
     }
@@ -106,10 +99,21 @@ public class AICompanionViewModel {
         guard let context = notification.userInfo?["context"] as? LevelContext else { return }
         self.currentContext = context
         
+        // 同步通知给持久化存储器当前处于哪个模块
+        LearningBehaviorStore.shared.updateCurrentLevel(context.levelId)
+        
         // 切换关卡时，重置所有内部状态
         self.errorCount = 0
         self.recentErrors.removeAll()
-        self.currentState = .exploring
+        
+        // 特定页面的欢迎语
+        if context.levelId == "laboratory" {
+            self.currentState = .greeting(message: "欢迎来到地心实验室！在这里你可以调配样本，看看它能不能撑到地心哦！")
+        } else if context.levelId == "game_crust" {
+            self.currentState = .greeting(message: "欢迎来到地壳探险！试着拖动板块，看看会发生什么奇妙的变化吧！")
+        } else {
+            self.currentState = .exploring
+        }
         
         resetTimer()
     }
@@ -124,7 +128,11 @@ public class AICompanionViewModel {
         
         switch action.type {
         case .enterPage:
-            self.currentState = .exploring
+            if case .greeting = currentState {
+                // 如果已经是打招呼状态，保留，气泡会自动消失
+            } else {
+                self.currentState = .exploring
+            }
             
         case .leavePage:
             hesitationTimer?.invalidate()
@@ -141,10 +149,14 @@ public class AICompanionViewModel {
                 self.currentState = .confused(L1Tip: "找不到线索吗？试试乱拖一下~")
             }
             
-        case .error(let source, let target):
+        case .error(let source, let target, let details):
             // 错误计数+1
             errorCount += 1
-            recentErrors.append("将[\(source)]错放到了[\(target)]")
+            if let details = details {
+                recentErrors.append("将[\(source)]错放到了[\(target)]，因为：\(details)")
+            } else {
+                recentErrors.append("将[\(source)]错放到了[\(target)]")
+            }
             
             if errorCount >= 3 {
                 let contextStr = currentContext?.targetGoal ?? "未知任务"
@@ -158,7 +170,7 @@ public class AICompanionViewModel {
                 self.currentState = .confused(L1Tip: "好像放错位置了哦，再想想？")
             }
             
-        case .success(_, _):
+        case .success(_, _, _):
             // 防时序错乱：用户自己蒙对了，立即作废正在进行的大模型请求
             self.currentAIRequestTaskID = nil
             
@@ -218,17 +230,20 @@ public class AICompanionViewModel {
         // 2. 组装 Prompt
         let errorDescriptions = errors.joined(separator: "，并且")
         let prompt = """
-        当前用户正在进行的任务是：【\(context)】
-        但是用户连续犯了以下错误：【\(errorDescriptions)】
+        当前用户正在进行的任务是：【\\(context)】
+        但是用户连续犯了以下错误：【\\(errorDescriptions)】
         请用一句话（30字以内）亲切地启发他，不要直接告诉他最终答案，最好以疑问句结尾引导他自己思考。
         """
+        
+        let levelId = currentContext?.levelId ?? "unknown"
+        let dynamicSystemPrompt = AIContextManager.shared.getSystemPrompt(for: levelId)
         
         // 3. 构造请求参数
         let parameters: [String: Any] = [
             "model": "qwen-plus-character",
             "stream": true,
             "messages": [
-                ["role": "system", "content": systemPrompt],
+                ["role": "system", "content": dynamicSystemPrompt],
                 ["role": "user", "content": prompt]
             ]
         ]

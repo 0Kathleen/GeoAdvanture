@@ -95,4 +95,17 @@ class EarthPhysicsEngine {
         // 这样在 136 GPa (核幔边界) 时，熔点提升约 2720°C
         return baseMeltingPoint + currentPressure * 20.0
     }
+
+    func layerName(for depth: Double) -> String {
+        switch depth {
+        case ..<35:
+            return "地壳"
+        case ..<2890:
+            return "地幔"
+        case ..<5150:
+            return "外核"
+        default:
+            return "内核"
+        }
+    }
 }

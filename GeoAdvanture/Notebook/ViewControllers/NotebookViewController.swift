@@ -119,6 +119,19 @@ class NotebookViewController: UIViewController {
             lastAppliedEarthLayerIndex = initialEarthLayerIndex
             configureForLayerEntry()
         }
+        
+        let context = LevelContext(
+            levelId: "notebook_\(initialEarthLayerIndex)",
+            levelName: viewModel.layerName,
+            targetGoal: "浏览地球内部结构知识笔记"
+        )
+        LearningEventBus.shared.updateContext(context)
+        LearningEventBus.shared.post(action: LearningAction(type: .enterPage))
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        LearningEventBus.shared.post(action: LearningAction(type: .leavePage))
     }
 
     deinit {
@@ -247,6 +260,8 @@ class NotebookViewController: UIViewController {
             newVC = NotebookIntroViewController(viewModel: viewModel)
         case 1:
             newVC = NotebookMapViewController(viewModel: viewModel)
+        case 2:
+            newVC = NotebookHarvestViewController(viewModel: viewModel)
         default:
             newVC = NotebookSubPageViewController(bookmarkIndex: selectedBookmarkIndex, viewModel: viewModel)
         }

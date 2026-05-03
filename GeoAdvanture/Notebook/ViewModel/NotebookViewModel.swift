@@ -22,6 +22,18 @@ struct NotebookSubPageData {
     let layerName: String
 }
 
+struct HarvestCardData {
+    let title: String
+    let content: String
+}
+
+struct HarvestSectionData {
+    let id: String
+    let title: String
+    let cards: [HarvestCardData]
+    let isUnlocked: Bool
+}
+
 // MARK: - ViewModel
 
 class NotebookViewModel {
@@ -75,5 +87,33 @@ class NotebookViewModel {
             titleText: titleText,
             layerName: layerName
         )
+    }
+    
+    func fetchHarvestData() -> [HarvestSectionData] {
+        guard let harvests = knowledge?.harvests else { return [] }
+        
+        var sections: [HarvestSectionData] = []
+        for harvest in harvests {
+            let isUnlocked = GameProgressManager.shared.isHarvestUnlocked(id: harvest.id)
+            
+            // Parse content into cards
+            var cards: [HarvestCardData] = []
+            let parts = harvest.content.components(separatedBy: "【")
+            for part in parts {
+                guard part.contains("】") else { continue }
+                let subParts = part.components(separatedBy: "】")
+                if subParts.count == 2 {
+                    let title = subParts[0].trimmingCharacters(in: .whitespacesAndNewlines)
+                    let text = subParts[1].trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !title.isEmpty && !text.isEmpty {
+                        cards.append(HarvestCardData(title: title, content: text))
+                    }
+                }
+            }
+            
+            sections.append(HarvestSectionData(id: harvest.id, title: harvest.title, cards: cards, isUnlocked: isUnlocked))
+        }
+        
+        return sections
     }
 }

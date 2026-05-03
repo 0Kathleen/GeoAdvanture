@@ -15,7 +15,7 @@ struct NoteModel {
 }
 
 struct NotebookCarouselSlide: Equatable {
-    let imageURL: URL
+    let imageName: String
     let caption: String
 }
 
@@ -28,6 +28,7 @@ struct EarthLayerKnowledge {
     let lifeContent: String
     let funContent: String
     let compareContent: String
+    let harvests: [HarvestModel]?
 
     func introRows(bidPrefix: String) -> [NoteModel] {
         return [
@@ -46,10 +47,11 @@ enum NotebookContent {
     static func knowledge(forLayer index: Int) -> EarthLayerKnowledge? {
         guard let layerData = NotebookKnowledgeManager.shared.getKnowledge(at: index - 1) else { return nil }
         
-        let slides = layerData.carouselSlides.compactMap { slide -> NotebookCarouselSlide? in
-            guard let url = URL(string: slide.imageURL) else { return nil }
-            return NotebookCarouselSlide(imageURL: url, caption: slide.caption)
-        }
+        let slides = [
+            NotebookCarouselSlide(imageName: "CarouseImage1", caption: ""),
+            NotebookCarouselSlide(imageName: "CarouseImage2", caption: ""),
+            NotebookCarouselSlide(imageName: "CarouseImage3", caption: "")
+        ]
         
         return EarthLayerKnowledge(
             layerIndex: index,
@@ -59,7 +61,8 @@ enum NotebookContent {
             featureContent: layerData.featureContent,
             lifeContent: layerData.lifeContent,
             funContent: layerData.funContent,
-            compareContent: layerData.compareContent
+            compareContent: layerData.compareContent,
+            harvests: layerData.harvests
         )
     }
     

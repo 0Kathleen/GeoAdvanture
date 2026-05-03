@@ -20,25 +20,23 @@ final class CrustalMovementGameViewController: UIViewController {
         return b
     }()
     
-    private lazy var mapButton: UIButton = {
+    private lazy var unlockScenesButton: UIButton = {
         let b = UIButton(type: .custom)
-        b.setImage(UIImage(named: "mapButton"), for: .normal)
-        b.imageView?.contentMode = .scaleAspectFit
-        b.addTarget(self, action: #selector(mapTapped), for: .touchUpInside)
+        b.setBackgroundImage(UIImage(named: "mapButton"), for: .normal)
+        b.setTitle("解锁场景 0/4", for: .normal)
+        b.setTitleColor(UIColor(red: 0xF7/255.0, green: 0xDD/255.0, blue: 0xAA/255.0, alpha: 1.0), for: .normal)
+        b.titleLabel?.font = UIFont(name: "FZZJ-QNTJW--GB1-0", size: 24) ?? .systemFont(ofSize: 24, weight: .bold)
+        b.addTarget(self, action: #selector(unlockScenesTapped), for: .touchUpInside)
         return b
     }()
     
-    private lazy var dimmingView: UIView = {
-        let v = UIView()
-        v.backgroundColor = UIColor.black.withAlphaComponent(0.5)
+    private lazy var unlockedScenesOverlay: CrustUnlockedScenesOverlayView = {
+        let v = CrustUnlockedScenesOverlayView()
+        v.delegate = self
         v.isHidden = true
-        let tap = UITapGestureRecognizer(target: self, action: #selector(hideMap))
-        v.addGestureRecognizer(tap)
+        v.alpha = 0
         return v
     }()
-    
-    // 全局世界地图缩略图
-    private let miniMapView = GlobalMapThumbnailView()
     
     // 沉浸互动切面
     private let crossSectionView = CrustCrossSectionView()
@@ -67,16 +65,23 @@ final class CrustalMovementGameViewController: UIViewController {
         return sc
     }()
     
+    private let resultContainer: UIView = {
+        let v = UIView()
+        v.backgroundColor = UIColor.black.withAlphaComponent(0.6)
+        v.layer.cornerRadius = 12
+        v.clipsToBounds = true
+        v.alpha = 0
+        v.layer.borderWidth = 1
+        v.layer.borderColor = UIColor(red: 0xF7/255.0, green: 0xDD/255.0, blue: 0xAA/255.0, alpha: 0.5).cgColor
+        return v
+    }()
+    
     private let resultLabel: UILabel = {
         let l = UILabel()
-        l.font = .systemFont(ofSize: 16, weight: .medium)
-        l.textColor = .white
+        l.font = UIFont(name: "SourceHanSerifCN-Medium", size: 15) ?? .systemFont(ofSize: 15, weight: .medium)
+        l.textColor = UIColor(red: 0xF7/255.0, green: 0xDD/255.0, blue: 0xAA/255.0, alpha: 1.0)
         l.textAlignment = .center
         l.numberOfLines = 0
-        l.backgroundColor = UIColor.black.withAlphaComponent(0.7)
-        l.layer.cornerRadius = 8
-        l.clipsToBounds = true
-        l.alpha = 0
         return l
     }()
     
@@ -117,10 +122,10 @@ final class CrustalMovementGameViewController: UIViewController {
         controlPanel.addSubview(leftTypeControl)
         controlPanel.addSubview(rightTypeControl)
         view.addSubview(closeButton)
-        view.addSubview(mapButton)
-        view.addSubview(dimmingView)
-        view.addSubview(miniMapView)
-        view.addSubview(resultLabel)
+        view.addSubview(unlockScenesButton)
+        view.addSubview(resultContainer)
+        resultContainer.addSubview(resultLabel)
+        view.addSubview(unlockedScenesOverlay)
         
         crossSectionView.snp.makeConstraints { make in
             make.edges.equalToSuperview()
@@ -132,10 +137,11 @@ final class CrustalMovementGameViewController: UIViewController {
             make.size.equalTo(CGSize(width: 44, height: 44))
         }
         
-        mapButton.snp.makeConstraints { make in
+        unlockScenesButton.snp.makeConstraints { make in
             make.top.equalTo(view.safeAreaLayoutGuide).offset(16)
             make.trailing.equalToSuperview().inset(16)
-            make.size.equalTo(CGSize(width: 44, height: 44))
+            make.height.equalTo(62)
+            make.width.equalTo(206)
         }
         
         controlPanel.snp.makeConstraints { make in
@@ -157,22 +163,18 @@ final class CrustalMovementGameViewController: UIViewController {
             make.width.equalTo(130)
         }
         
-        dimmingView.snp.makeConstraints { make in
-            make.edges.equalToSuperview()
+        resultContainer.snp.makeConstraints { make in
+            make.top.equalTo(unlockScenesButton.snp.bottom).offset(12)
+            make.trailing.equalTo(unlockScenesButton)
+            make.width.lessThanOrEqualTo(240)
         }
-        
-        miniMapView.snp.makeConstraints { make in
-            make.center.equalToSuperview()
-            make.width.equalToSuperview().multipliedBy(0.85)
-            make.height.equalToSuperview().multipliedBy(0.4)
-        }
-        miniMapView.isHidden = true
-        miniMapView.alpha = 0
         
         resultLabel.snp.makeConstraints { make in
-            make.top.equalTo(miniMapView.snp.bottom).offset(20)
-            make.centerX.equalToSuperview()
-            make.leading.trailing.lessThanOrEqualToSuperview().inset(32)
+            make.edges.equalToSuperview().inset(UIEdgeInsets(top: 14, left: 16, bottom: 14, right: 16))
+        }
+        
+        unlockedScenesOverlay.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
         }
     }
     
@@ -181,36 +183,18 @@ final class CrustalMovementGameViewController: UIViewController {
         dismiss(animated: true)
     }
     
-    @objc private func mapTapped() {
-        if miniMapView.isHidden {
-            showMap()
-        } else {
-            hideMap()
-        }
-    }
-    
-    @objc private func hideMap() {
-        UIView.animate(withDuration: 0.3, animations: {
-            self.dimmingView.alpha = 0
-            self.miniMapView.alpha = 0
-            self.miniMapView.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
-            self.resultLabel.alpha = 0
-        }) { _ in
-            self.dimmingView.isHidden = true
-            self.miniMapView.isHidden = true
-        }
-    }
-    
-    private func showMap() {
-        dimmingView.isHidden = false
-        miniMapView.isHidden = false
-        miniMapView.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
+    @objc private func unlockScenesTapped() {
+        LearningEventBus.shared.post(action: LearningAction(type: .validInteraction(target: "查看已解锁场景")))
+        unlockedScenesOverlay.isHidden = false
+        unlockedScenesOverlay.display(scenes: viewModel.unlockedScenes)
         
-        UIView.animate(withDuration: 0.4, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.5, options: .curveEaseInOut, animations: {
-            self.dimmingView.alpha = 1.0
-            self.miniMapView.alpha = 1.0
-            self.miniMapView.transform = .identity
-        }, completion: nil)
+        UIView.animate(withDuration: 0.3) {
+            self.unlockedScenesOverlay.alpha = 1.0
+        }
+    }
+    
+    private func updateUnlockButtonTitle() {
+        unlockScenesButton.setTitle("解锁场景 \(viewModel.unlockedCount)/4", for: .normal)
     }
     
     @objc private func plateTypeChanged() {
@@ -219,7 +203,6 @@ final class CrustalMovementGameViewController: UIViewController {
         
         // 重置互动状态
         crossSectionView.resetPlates()
-        miniMapView.resetHighlight()
         hideResultLabel()
         
         viewModel.leftPlateType = leftTypeControl.selectedSegmentIndex == 0 ? .continental : .oceanic
@@ -229,14 +212,30 @@ final class CrustalMovementGameViewController: UIViewController {
     }
     
     private func showResultLabel(text: String) {
-        resultLabel.text = " \(text) "
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.lineSpacing = 6
+        paragraphStyle.alignment = .center
+        let attrString = NSAttributedString(string: text, attributes: [
+            .paragraphStyle: paragraphStyle,
+            .font: UIFont(name: "SourceHanSerifCN-Medium", size: 15) ?? .systemFont(ofSize: 15, weight: .medium),
+            .foregroundColor: UIColor(red: 0xF7/255.0, green: 0xDD/255.0, blue: 0xAA/255.0, alpha: 1.0)
+        ])
+        resultLabel.attributedText = attrString
+        
         UIView.animate(withDuration: 0.3) {
-            self.resultLabel.alpha = 1.0
+            self.resultContainer.alpha = 1.0
+        }
+        
+        // Auto hide after some time
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) { [weak self] in
+            self?.hideResultLabel()
         }
     }
     
     private func hideResultLabel() {
-        self.resultLabel.alpha = 0
+        UIView.animate(withDuration: 0.3) {
+            self.resultContainer.alpha = 0
+        }
     }
 }
 
@@ -244,7 +243,7 @@ final class CrustalMovementGameViewController: UIViewController {
 extension CrustalMovementGameViewController: CrustCrossSectionViewDelegate {
     
     func crossSectionView(_ view: CrustCrossSectionView, didPanWithOffset offset: CGFloat) {
-        // 拖拽过程中的实时响应（如果需要可以做一些进度反馈）
+        // 拖拽过程中的实时响应
     }
     
     func crossSectionViewDidEndPan(_ view: CrustCrossSectionView, finalOffset: CGFloat) {
@@ -254,12 +253,9 @@ extension CrustalMovementGameViewController: CrustCrossSectionViewDelegate {
         let rightPlateName = viewModel.rightPlateType == .continental ? "大陆" : "大洋"
         
         guard result != .none else {
-            // 未达阈值，弹回原位
-            // 🟢 埋点：被判定为无效或错误的交互 (如大洋和大陆张裂等)
+            // 🟢 埋点：被判定为无效或错误的交互
             LearningEventBus.shared.post(action: LearningAction(type: .error(source: leftPlateName, target: rightPlateName)))
-            
             view.resetPlates()
-            miniMapView.resetHighlight()
             hideResultLabel()
             return
         }
@@ -267,23 +263,31 @@ extension CrustalMovementGameViewController: CrustCrossSectionViewDelegate {
         // 🟢 埋点：成功的有效交互
         LearningEventBus.shared.post(action: LearningAction(type: .success(source: leftPlateName, target: rightPlateName)))
         
+        viewModel.unlockScene(for: result)
+        updateUnlockButtonTitle()
+        
+        if viewModel.unlockedCount == 4 {
+            LearningEventBus.shared.post(action: LearningAction(type: .success(source: "地壳探险", target: "解锁全场景")))
+        }
+        
         view.playFormationAnimation(result: result)
 
         switch result {
-        case .mountain(let location, let desc):
-            showMap()
-            miniMapView.highlightLocation(location)
-            showResultLabel(text: desc)
-        case .trench(let location, let desc):
-            showMap()
-            miniMapView.highlightLocation(location)
-            showResultLabel(text: desc)
-        case .rift(let location, let desc):
-            showMap()
-            miniMapView.highlightLocation(location)
+        case .mountain(_, let desc), .trench(_, let desc), .rift(_, let desc):
             showResultLabel(text: desc)
         case .none:
             break
+        }
+    }
+}
+
+// MARK: - CrustUnlockedScenesOverlayViewDelegate
+extension CrustalMovementGameViewController: CrustUnlockedScenesOverlayViewDelegate {
+    func unlockedScenesOverlayDidRequestClose() {
+        UIView.animate(withDuration: 0.3, animations: {
+            self.unlockedScenesOverlay.alpha = 0
+        }) { _ in
+            self.unlockedScenesOverlay.isHidden = true
         }
     }
 }

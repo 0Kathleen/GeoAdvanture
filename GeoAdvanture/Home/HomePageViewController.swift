@@ -13,6 +13,8 @@ protocol HomePageSceneDelegate: AnyObject {
     func homeSceneDidSelectLayer(index: Int)
     /// 点击进入地心实验室
     func homeSceneDidTapLaboratory()
+    /// 点击进入奖章管理
+    func homeSceneDidTapMedal()
 }
 
 class HomePageViewController:UIViewController{
@@ -20,6 +22,7 @@ class HomePageViewController:UIViewController{
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        _ = MedalManager.shared // 初始化奖章管理器并注册监听
         configUI()
         loadHomeScene()
     }
@@ -75,9 +78,16 @@ extension HomePageViewController: HomePageSceneDelegate {
     }
     
     func homeSceneDidTapLaboratory() {
-        let labVC = LaboratoryViewController()
-        labVC.modalPresentationStyle = .fullScreen
-        labVC.modalTransitionStyle = .crossDissolve
-        present(labVC, animated: true)
+        let introVC = LaboratoryIntroViewController()
+        introVC.modalPresentationStyle = .fullScreen
+        introVC.modalTransitionStyle = .crossDissolve
+        present(introVC, animated: true)
+    }
+    
+    func homeSceneDidTapMedal() {
+        let medalVC = MedalViewController()
+        medalVC.modalPresentationStyle = .fullScreen
+        medalVC.modalTransitionStyle = .crossDissolve
+        present(medalVC, animated: true)
     }
 }

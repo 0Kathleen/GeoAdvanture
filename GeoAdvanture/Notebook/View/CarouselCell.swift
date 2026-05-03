@@ -7,7 +7,7 @@
 import UIKit
 import SnapKit
 
-final class CarouselCell: UICollectionViewCell {
+class CarouselCell: UICollectionViewCell {
     
     static let reuseId = "CarouselCell"
 
@@ -19,19 +19,11 @@ final class CarouselCell: UICollectionViewCell {
         return v
     }()
 
-    private let spinner = UIActivityIndicatorView(style: .medium)
-
-    private var imageLoadTask: URLSessionDataTask?
-
     override init(frame: CGRect) {
         super.init(frame: frame)
         contentView.addSubview(imageView)
-        contentView.addSubview(spinner)
         imageView.snp.makeConstraints { make in
             make.edges.equalToSuperview()
-        }
-        spinner.snp.makeConstraints { make in
-            make.center.equalToSuperview()
         }
     }
 
@@ -41,27 +33,12 @@ final class CarouselCell: UICollectionViewCell {
 
     override func prepareForReuse() {
         super.prepareForReuse()
-        imageLoadTask?.cancel()
-        imageLoadTask = nil
         imageView.image = nil
-        spinner.stopAnimating()
     }
 
     func configure(slide: NotebookCarouselSlide?) {
-        imageLoadTask?.cancel()
-        imageLoadTask = nil
         imageView.image = nil
-        spinner.stopAnimating()
         guard let slide else { return }
-        spinner.startAnimating()
-        imageLoadTask = NotebookImageLoader.loadImage(from: slide.imageURL) { [weak self] result in
-            self?.spinner.stopAnimating()
-            switch result {
-            case .success(let img):
-                self?.imageView.image = img
-            case .failure:
-                self?.imageView.image = nil
-            }
-        }
+        imageView.image = UIImage(named: slide.imageName)
     }
 }

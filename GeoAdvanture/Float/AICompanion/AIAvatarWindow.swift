@@ -99,16 +99,24 @@ class AIAvatarWindow: UIWindow {
             hideBubble()
             startBreathingAnimation()
             
+        case .greeting(let message):
+            showBubble(text: message, type: .proficient) // 使用正向的黑色文本样式
+//            AIVoiceManager.shared.speak(text: message)
+            startBreathingAnimation()
+            
         case .confused(let tip):
             showBubble(text: tip, type: .confused)
+//            AIVoiceManager.shared.speak(text: tip)
             startThinkingAnimation()
             
         case .struggling(_, _):
             showBubble(text: "我在思考怎么帮你...", type: .struggling)
+            // 思考过程可以不播报，或者播放一个“嗯...”的音效
             startThinkingAnimation()
             
         case .proficient(let encouragement):
             showBubble(text: encouragement, type: .proficient)
+//            AIVoiceManager.shared.speak(text: encouragement)
             startCelebratingAnimation()
         }
     }

@@ -11,7 +11,23 @@ protocol LaboratorySceneDelegate: AnyObject {
     /// 实验数据实时更新
     func didUpdateEnvironment(depth: Double, temp: Double, pressure: Double, density: Double)
     /// 实验结束（成功或失败）
-    func didFinishExperiment(success: Bool, reason: String)
+    func didFinishExperiment(result: LaboratoryExperimentResult)
+}
+
+enum LaboratoryOutcomeType {
+    case melted 
+    case crushed
+    case floating
+    case crystallized
+}
+
+struct LaboratoryExperimentResult {
+    let outcome: LaboratoryOutcomeType
+    let sample: SampleData
+    let reachedDepth: Double
+    let reachedLayer: String
+    let processDescription: String
+    let finalForm: String
 }
 
 class LaboratoryScene: SKScene, SKPhysicsContactDelegate {
@@ -29,6 +45,8 @@ class LaboratoryScene: SKScene, SKPhysicsContactDelegate {
     
     // MARK: - 状态控制
     private var isExperimentRunning = false
+    private var shouldFollowSample = false
+    private var lastHudUpdateTime: TimeInterval = 0
     
     // 物理世界的缩放比例：1个点代表多少千米 (例如 1 point = 2 km)
     private let kmPerPoint: Double = 2.0
@@ -41,10 +59,10 @@ class LaboratoryScene: SKScene, SKPhysicsContactDelegate {
     }
     
     private func setupScene() {
-        self.backgroundColor = .black
+        self.backgroundColor = UIColor(red: 0.86, green: 0.94, blue: 1.0, alpha: 1.0)
         
         // 配置物理世界
-        physicsWorld.gravity = CGVector(dx: 0, dy: -9.8)
+        physicsWorld.gravity = CGVector(dx: 0, dy: -2.0)
         physicsWorld.contactDelegate = self
     }
     
@@ -52,18 +70,41 @@ class LaboratoryScene: SKScene, SKPhysicsContactDelegate {
         // 创建一个超长的背景节点来代表地层
         let totalHeight = CGFloat(maxDepthKm / kmPerPoint)
         
-        backgroundNode = SKSpriteNode(color: .darkGray, size: CGSize(width: self.size.width, height: totalHeight))
+        backgroundNode = SKSpriteNode(color: UIColor(red: 0.86, green: 0.94, blue: 1.0, alpha: 1.0),
+                                      size: CGSize(width: self.size.width, height: totalHeight))
         backgroundNode.anchorPoint = CGPoint(x: 0.5, y: 1.0) // 锚点在顶部中心
         backgroundNode.position = CGPoint(x: self.size.width / 2, y: self.size.height)
         backgroundNode.zPosition = -10
         addChild(backgroundNode)
         
-        // 绘制地层分界线
+        drawLayerBand(topDepthKm: 0, bottomDepthKm: 35, color: UIColor(red: 0.99, green: 0.90, blue: 0.62, alpha: 1.0), title: "地壳")
+        drawLayerBand(topDepthKm: 35, bottomDepthKm: 2890, color: UIColor(red: 0.98, green: 0.67, blue: 0.42, alpha: 1.0), title: "地幔")
+        drawLayerBand(topDepthKm: 2890, bottomDepthKm: 5150, color: UIColor(red: 0.97, green: 0.48, blue: 0.39, alpha: 1.0), title: "外核")
+        drawLayerBand(topDepthKm: 5150, bottomDepthKm: 6371, color: UIColor(red: 0.80, green: 0.29, blue: 0.41, alpha: 1.0), title: "内核")
+
         drawLayerLine(depthKm: 35, color: .lightGray, name: "莫霍面 (35km)")
         drawLayerLine(depthKm: 660, color: .systemRed, name: "上下地幔边界 (660km)")
         drawLayerLine(depthKm: 2890, color: .orange, name: "核幔边界 (2890km)")
         drawLayerLine(depthKm: 5150, color: .yellow, name: "内外核边界 (5150km)")
         drawLayerLine(depthKm: 6371, color: .white, name: "地心 (6371km)")
+    }
+
+    private func drawLayerBand(topDepthKm: Double, bottomDepthKm: Double, color: UIColor, title: String) {
+        let topY = -CGFloat(topDepthKm / kmPerPoint)
+        let bottomY = -CGFloat(bottomDepthKm / kmPerPoint)
+        let segmentHeight = topY - bottomY
+
+        let segment = SKSpriteNode(color: color, size: CGSize(width: self.size.width, height: segmentHeight))
+        segment.position = CGPoint(x: 0, y: bottomY + segmentHeight / 2)
+        segment.alpha = 0.92
+        backgroundNode.addChild(segment)
+
+        let titleNode = SKLabelNode(text: title)
+        titleNode.fontName = "HelveticaNeue-Bold"
+        titleNode.fontSize = 48
+        titleNode.fontColor = UIColor(white: 1.0, alpha: 0.92)
+        titleNode.position = CGPoint(x: 0, y: bottomY + segmentHeight / 2 - 10)
+        backgroundNode.addChild(titleNode)
     }
     
     private func drawLayerLine(depthKm: Double, color: UIColor, name: String) {
@@ -74,7 +115,7 @@ class LaboratoryScene: SKScene, SKPhysicsContactDelegate {
         
         let label = SKLabelNode(text: name)
         label.fontName = "HelveticaNeue-Bold"
-        label.fontSize = 12
+        label.fontSize = 24
         label.fontColor = color
         label.position = CGPoint(x: -self.size.width/2 + 10, y: yPos + 5)
         label.horizontalAlignmentMode = .left
@@ -86,6 +127,7 @@ class LaboratoryScene: SKScene, SKPhysicsContactDelegate {
         cameraNode.position = CGPoint(x: self.size.width / 2, y: self.size.height / 2)
         self.camera = cameraNode
         addChild(cameraNode)
+        showOverview(animated: false)
     }
     
     // MARK: - 公开方法：控制实验
@@ -95,21 +137,52 @@ class LaboratoryScene: SKScene, SKPhysicsContactDelegate {
         
         sampleNode?.removeFromParent()
         createSampleNode(with: sample)
-        
-        cameraNode.position = CGPoint(x: self.size.width / 2, y: self.size.height / 2)
-        isExperimentRunning = true
+
+        sampleNode?.physicsBody?.isDynamic = false
+        shouldFollowSample = false
+        isExperimentRunning = false
+
+        let focusPosition = CGPoint(x: self.size.width / 2, y: self.size.height - 180)
+        let moveCamera = SKAction.move(to: focusPosition, duration: 1.2)
+        moveCamera.timingMode = .easeInEaseOut
+        let zoomCamera = SKAction.scale(to: 1.0, duration: 1.2)
+        zoomCamera.timingMode = .easeInEaseOut
+        let startDrop = SKAction.run { [weak self] in
+            guard let self else { return }
+            self.sampleNode?.physicsBody?.isDynamic = true
+            self.isExperimentRunning = true
+            self.shouldFollowSample = true
+        }
+        cameraNode.run(.sequence([.group([moveCamera, zoomCamera]), startDrop]))
     }
     
     func resetExperiment() {
         isExperimentRunning = false
+        shouldFollowSample = false
         sampleNode?.removeFromParent()
         sampleNode = nil
-        
-        let moveAction = SKAction.move(to: CGPoint(x: self.size.width / 2, y: self.size.height / 2), duration: 1.0)
-        moveAction.timingMode = .easeOut
-        cameraNode.run(moveAction)
-        
-        labDelegate?.didUpdateEnvironment(depth: 0, temp: 15, pressure: 0, density: 2.7)
+
+        showOverview(animated: true)
+        labDelegate?.didUpdateEnvironment(depth: 0, temp: 15, pressure: 0.0001, density: 2.7)
+    }
+
+    func showOverview(animated: Bool) {
+        shouldFollowSample = false
+        let totalHeight = CGFloat(maxDepthKm / kmPerPoint)
+        let overviewY = self.size.height - totalHeight / 2
+        let scale = max(totalHeight / max(self.size.height, 1) * 1.12, 1.8)
+        let target = CGPoint(x: self.size.width / 2, y: overviewY)
+
+        if animated {
+            let move = SKAction.move(to: target, duration: 0.8)
+            move.timingMode = .easeInEaseOut
+            let zoom = SKAction.scale(to: scale, duration: 0.8)
+            zoom.timingMode = .easeInEaseOut
+            cameraNode.run(.group([move, zoom]))
+        } else {
+            cameraNode.position = target
+            cameraNode.setScale(scale)
+        }
     }
     
     private func createSampleNode(with data: SampleData) {
@@ -149,15 +222,20 @@ class LaboratoryScene: SKScene, SKPhysicsContactDelegate {
         let env = physicsEngine.getEnvironment(at: currentDepthKm)
         
         // 通知 UI 更新仪表盘
-        labDelegate?.didUpdateEnvironment(
-            depth: env.depth,
-            temp: env.temperature,
-            pressure: env.pressure,
-            density: env.density
-        )
+        if currentTime - lastHudUpdateTime > 0.08 {
+            lastHudUpdateTime = currentTime
+            labDelegate?.didUpdateEnvironment(
+                depth: env.depth,
+                temp: env.temperature,
+                pressure: env.pressure,
+                density: env.density
+            )
+        }
         
         // 3. 摄像机跟随样本下落
-        cameraNode.position.y = sample.position.y
+        if shouldFollowSample {
+            cameraNode.position.y = sample.position.y
+        }
         
         // 4. 物理场动态调整 (阻力与浮力)
         applyDynamicPhysics(sample: sample, sampleData: sampleData, env: env)
@@ -199,13 +277,23 @@ class LaboratoryScene: SKScene, SKPhysicsContactDelegate {
         )
         
         if env.temperature > actualMeltingPoint {
-            triggerDestruction(reason: "温度过高 (\(Int(env.temperature))°C)，样本已熔化气化。", type: .melt)
+            triggerDestruction(
+                type: .melt,
+                env: env,
+                processDescription: "样本进入\(physicsEngine.layerName(for: env.depth))后，因温度达到\(Int(env.temperature))°C，高于耐受极限，逐渐熔化。",
+                finalForm: "熔化成炽热流体"
+            )
             return
         }
         
         // 2. 碎裂判定
         if env.pressure > sampleData.strength {
-            triggerDestruction(reason: "压力过大 (\(String(format: "%.1f", env.pressure)) GPa)，样本晶格崩塌碎裂。", type: .crush)
+            triggerDestruction(
+                type: .crush,
+                env: env,
+                processDescription: "样本继续下落时遭遇\(String(format: "%.1f", env.pressure)) GPa高压，内部结构无法承受。",
+                finalForm: "碎裂成细小碎片"
+            )
             return
         }
         
@@ -213,7 +301,12 @@ class LaboratoryScene: SKScene, SKPhysicsContactDelegate {
         if env.state == .liquid && sampleData.density < env.density {
             // 如果速度已经很慢，说明悬浮稳定了
             if let velocity = sample.physicsBody?.velocity.dy, abs(velocity) < 10 {
-                triggerDestruction(reason: "密度不足 (\(sampleData.density) g/cm³ < 外核 \(env.density) g/cm³)，样本悬浮在液态外核表面，无法继续下沉。", type: .float)
+                triggerDestruction(
+                    type: .float,
+                    env: env,
+                    processDescription: "样本来到液态外核后，因密度低于周围介质，逐渐减速并停留在外核上方。",
+                    finalForm: "悬浮在液态金属之上"
+                )
                 return
             }
         }
@@ -230,12 +323,15 @@ class LaboratoryScene: SKScene, SKPhysicsContactDelegate {
         case float
     }
     
-    private func triggerDestruction(reason: String, type: DestructionType) {
+    private func triggerDestruction(type: DestructionType, env: EarthLayerData, processDescription: String, finalForm: String) {
         isExperimentRunning = false
+        shouldFollowSample = false
         guard let sample = sampleNode else { return }
+        guard let sampleData = currentSampleData else { return }
         
         let pos = sample.position
         sample.removeFromParent()
+        sampleNode = nil
         
         // 播放特效
         switch type {
@@ -247,20 +343,49 @@ class LaboratoryScene: SKScene, SKPhysicsContactDelegate {
             // 悬浮不需要爆炸特效，只需停止
             break
         }
-        
-        labDelegate?.didFinishExperiment(success: false, reason: reason)
+
+        let outcome: LaboratoryOutcomeType
+        switch type {
+        case .melt:
+            outcome = .melted
+        case .crush:
+            outcome = .crushed
+        case .float:
+            outcome = .floating
+        }
+
+        let result = LaboratoryExperimentResult(
+            outcome: outcome,
+            sample: sampleData,
+            reachedDepth: env.depth,
+            reachedLayer: physicsEngine.layerName(for: env.depth),
+            processDescription: processDescription,
+            finalForm: finalForm
+        )
+        labDelegate?.didFinishExperiment(result: result)
     }
     
     private func triggerSuccess() {
         isExperimentRunning = false
+        shouldFollowSample = false
         guard let sample = sampleNode else { return }
+        guard let sampleData = currentSampleData else { return }
         
         let pos = sample.position
+        sampleNode = nil
         
         // 播放结晶特效 (用一个高亮的粒子代替)
         playSuccessEffect(at: pos)
-        
-        labDelegate?.didFinishExperiment(success: true, reason: "完美参数！样本成功抵御了地心 5500°C 高温与 360 GPa 极高压，结晶为稀有宝石！")
+
+        let result = LaboratoryExperimentResult(
+            outcome: .crystallized,
+            sample: sampleData,
+            reachedDepth: maxDepthKm,
+            reachedLayer: "地心",
+            processDescription: "样本一路穿过地幔与外核，最终抵达地心，在极端环境中保持稳定。",
+            finalForm: "结晶为稀有宝石"
+        )
+        labDelegate?.didFinishExperiment(result: result)
     }
     
     // MARK: - 粒子特效 (代码生成，无需外部文件)

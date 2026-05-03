@@ -31,10 +31,10 @@ public enum ActionType {
     case validInteraction(target: String)
     /// 发生无效点击 (反复乱点)
     case invalidInteraction(target: String)
-    /// 拖拽/答题错误
-    case error(source: String, target: String)
+    /// 拖拽/答题错误 (新增 details 用于存放复杂的错误原因，例如调参失败原因)
+    case error(source: String, target: String, details: String? = nil)
     /// 拖拽/答题成功
-    case success(source: String, target: String)
+    case success(source: String, target: String, details: String? = nil)
     /// 关卡/环节完成
     case stepCompleted
 }

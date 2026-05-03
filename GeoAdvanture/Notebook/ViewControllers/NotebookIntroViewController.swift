@@ -73,6 +73,10 @@ class NotebookIntroViewController: UIViewController {
         tv.rowHeight = UITableView.automaticDimension
         tv.estimatedRowHeight = 180
         tv.showsVerticalScrollIndicator = true
+        tv.contentInsetAdjustmentBehavior = .never
+        if #available(iOS 15.0, *) {
+            tv.sectionHeaderTopPadding = 0
+        }
         return tv
     }()
 
@@ -204,12 +208,7 @@ extension NotebookIntroViewController: UICollectionViewDataSource, UICollectionV
     }
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        guard indexPath.item < carouselItems.count else { return }
-        let item = carouselItems[indexPath.item]
-        let detail = CarouselViewController(imageURL: item.imageURL, caption: item.caption)
-        let nav = UINavigationController(rootViewController: detail)
-        nav.modalPresentationStyle = .formSheet
-        present(nav, animated: true)
+        // 禁用点击展开图片功能
     }
 
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
