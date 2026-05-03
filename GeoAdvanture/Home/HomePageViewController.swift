@@ -37,9 +37,9 @@ class HomePageViewController:UIViewController{
 
         let skView = SKView(frame: view.bounds)
         skView.ignoresSiblingOrder = true
-        skView.showsFPS = true
-        skView.showsNodeCount = true
-        skView.showsDrawCount = true
+        skView.showsFPS = false
+        skView.showsNodeCount = false
+        skView.showsDrawCount = false
         view.addSubview(skView)
         self.skView = skView
     }

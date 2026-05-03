@@ -19,9 +19,9 @@ class FlashingViewController: UIViewController {
         view.addSubview(skView)
         
         skView.ignoresSiblingOrder = true
-        skView.showsFPS = true
-        skView.showsNodeCount = true
-        skView.showsDrawCount = true
+        skView.showsFPS = false
+        skView.showsNodeCount = false
+        skView.showsDrawCount = false
 
         DispatchQueue.global(qos: .userInitiated).async {
             let atlas = SKTextureAtlas(named: "FlashingAtlas")
