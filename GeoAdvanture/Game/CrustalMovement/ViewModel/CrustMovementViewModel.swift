@@ -52,12 +52,20 @@ final class CrustMovementViewModel {
     
     private let thresholdOffset: CGFloat = 80.0
     
-    var unlockedScenes: [CrustUnlockedScene] = [
-        CrustUnlockedScene(id: "mountain_cc", title: "陆陆碰撞", description: "两个大陆板块相撞，谁也不肯让步，地壳向上隆起形成了高大的褶皱山脉。", location: "喜马拉雅山脉", imageName: "scene_mountain_cc", realImageName: "real_mountain_cc", isUnlocked: GameProgressManager.shared.isCrustSceneUnlocked(id: "mountain_cc")),
-        CrustUnlockedScene(id: "trench_oc", title: "海陆碰撞", description: "海洋板块较重，俯冲到大陆板块下方，在海底形成海沟，在陆地上挤压出海岸山脉。", location: "安第斯山脉", imageName: "scene_trench_oc", realImageName: "real_trench_oc", isUnlocked: GameProgressManager.shared.isCrustSceneUnlocked(id: "trench_oc")),
-        CrustUnlockedScene(id: "rift_cc", title: "陆陆拉伸", description: "大陆板块受拉力断裂开来，形成深深的裂谷。", location: "东非大裂谷", imageName: "scene_rift_cc", realImageName: "real_rift_cc", isUnlocked: GameProgressManager.shared.isCrustSceneUnlocked(id: "rift_cc")),
-        CrustUnlockedScene(id: "rift_oo", title: "海海拉伸", description: "海底的板块向两边拉开，地下岩浆涌出冷却，形成新的海底和海底山脉。", location: "大西洋中脊", imageName: "scene_rift_oo", realImageName: "real_rift_oo", isUnlocked: GameProgressManager.shared.isCrustSceneUnlocked(id: "rift_oo"))
-    ]
+    /// 场景列表 = 内容层的静态定义（ContentStore）+ 进度层的解锁状态（GameProgressManager）
+    var unlockedScenes: [CrustUnlockedScene] = CrustMovementViewModel.buildScenes()
+
+    private static func buildScenes() -> [CrustUnlockedScene] {
+        ContentStore.shared.crustScenes.map {
+            CrustUnlockedScene(id: $0.id,
+                               title: $0.title,
+                               description: $0.description,
+                               location: $0.location,
+                               imageName: $0.imageName,
+                               realImageName: $0.realImageName,
+                               isUnlocked: GameProgressManager.shared.isCrustSceneUnlocked(id: $0.id))
+        }
+    }
     
     var unlockedCount: Int {
         return unlockedScenes.filter { $0.isUnlocked }.count

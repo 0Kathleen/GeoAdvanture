@@ -17,15 +17,20 @@ public struct MedalModel {
 
 public class MedalManager {
     public static let shared = MedalManager()
-    
-    private(set) var medals: [MedalModel] = [
-        MedalModel(id: "diligence", name: "初出茅庐", description: "第一次踏上神奇的地质探索之旅。", imageName: "medal_diligence", isUnlocked: false),
-        MedalModel(id: "core_explorer", name: "地心探索者", description: "在极端环境下成功将样本送达地心结晶。", imageName: "medal_core", isUnlocked: false),
-        MedalModel(id: "crust_master", name: "造物主", description: "在地壳探险中解锁所有板块运动形成的奇妙地形。", imageName: "medal_crust", isUnlocked: false),
-        MedalModel(id: "curious_mind", name: "好奇宝宝", description: "勇敢尝试地心实验室的不同参数，虽然失败但积累了经验。", imageName: "medal_curious", isUnlocked: false),
-        MedalModel(id: "knowledge_seeker", name: "求知若渴", description: "翻开地质笔记本，主动汲取地球科学知识。", imageName: "medal_knowledge", isUnlocked: false)
-    ]
-    
+
+    /// 勋章列表 = 内容层的静态定义（ContentStore）+ 进度层的解锁状态（loadProgress 填充）
+    private(set) var medals: [MedalModel] = MedalManager.buildMedals()
+
+    private static func buildMedals() -> [MedalModel] {
+        ContentStore.shared.medals.map {
+            MedalModel(id: $0.id,
+                       name: $0.name,
+                       description: $0.description,
+                       imageName: $0.imageName,
+                       isUnlocked: false)
+        }
+    }
+
     private var currentLevelId: String?
     
     private init() {
