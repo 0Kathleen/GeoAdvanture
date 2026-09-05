@@ -7,32 +7,35 @@
 
 import Foundation
 
-/// 统一的进度与数据管理中心，负责持久化游戏和学习的进度
+/// 统一的进度门面（Facade）。对外保持稳定的 API，内部委托给 CoreData 的 ProgressStore。
+/// 内容定义请走 ContentStore；本类只关心「用户进度」。
 public class GameProgressManager {
     public static let shared = GameProgressManager()
-    
-    private let defaults = UserDefaults.standard
-    
+
+    private let store = ProgressStore.shared
+
     /// 一次性：按 `NotebookKnowledge.json` 顺序默认解锁前两个「关卡收获」知识点（便于新用户先看到内容）。
-    private static let starterNotebookHarvestsKey = "progress_starter_notebook_harvests_v1"
-    
+    private static let starterKey = "starter_notebook_harvests_v1"
+
     private init() {
+        // 先把旧 UserDefaults 数据迁移到 CoreData，再执行 starter 逻辑
+        LegacyMigrator.runIfNeeded(into: store)
         applyStarterNotebookHarvestUnlocksOnce()
     }
-    
+
     private func applyStarterNotebookHarvestUnlocksOnce() {
-        guard !defaults.bool(forKey: Self.starterNotebookHarvestsKey) else { return }
+        guard !store.bool(forKey: Self.starterKey, default: false) else { return }
         for id in Self.firstNotebookHarvestIds(count: 2) {
             unlockHarvest(id: id)
         }
-        defaults.set(true, forKey: Self.starterNotebookHarvestsKey)
+        store.setBool(true, forKey: Self.starterKey)
     }
-    
+
     /// 按圈层顺序、每个圈层内收获顺序，取前 `count` 个收获 ID。
     private static func firstNotebookHarvestIds(count: Int) -> [String] {
         guard count > 0 else { return [] }
         var ids: [String] = []
-        for layer in NotebookKnowledgeManager.shared.layers {
+        for layer in ContentStore.shared.layers {
             guard let harvests = layer.harvests else { continue }
             for h in harvests {
                 ids.append(h.id)
@@ -41,42 +44,42 @@ public class GameProgressManager {
         }
         return ids
     }
-    
+
     // MARK: - 1. 勋章系统管理 (Medals)
     public func isMedalUnlocked(id: String) -> Bool {
-        return defaults.bool(forKey: "progress_medal_\(id)")
+        store.isUnlocked(.medal, id)
     }
-    
+
     public func unlockMedal(id: String) {
-        defaults.set(true, forKey: "progress_medal_\(id)")
+        store.unlock(.medal, id)
     }
-    
+
     // MARK: - 2. 地壳探险场景解锁 (Crustal Scenes)
     public func isCrustSceneUnlocked(id: String) -> Bool {
-        return defaults.bool(forKey: "progress_crust_\(id)")
+        store.isUnlocked(.crustScene, id)
     }
-    
+
     public func unlockCrustScene(id: String) {
-        defaults.set(true, forKey: "progress_crust_\(id)")
+        store.unlock(.crustScene, id)
     }
-    
+
     // MARK: - 3. 笔记本知识收获解锁 (Harvests)
     public func isHarvestUnlocked(id: String) -> Bool {
-        return defaults.bool(forKey: "progress_harvest_\(id)")
+        store.isUnlocked(.harvest, id)
     }
-    
+
     public func unlockHarvest(id: String) {
-        defaults.set(true, forKey: "progress_harvest_\(id)")
+        store.unlock(.harvest, id)
     }
-    
+
     // MARK: - 4. 用户设置 (Settings)
     public var isAIVoiceEnabled: Bool {
-        get {
-            if defaults.object(forKey: "setting_ai_voice") == nil { return true } // 默认开启
-            return defaults.bool(forKey: "setting_ai_voice")
-        }
-        set {
-            defaults.set(newValue, forKey: "setting_ai_voice")
-        }
+        get { store.bool(forKey: "ai_voice", default: true) } // 默认开启
+        set { store.setBool(newValue, forKey: "ai_voice") }
+    }
+
+    // MARK: - 5. 维护
+    public func resetAllProgress() {
+        store.resetAllProgress()
     }
 }
