@@ -25,6 +25,8 @@ final class LaboratoryResultView: UIVisualEffectView {
         static let titleColor = UIColor.white
         static let primaryButtonColor = UIColor.systemOrange
         static let secondaryButtonColor = UIColor.systemBlue
+        /// 左侧「到达位置 / 最终形态」区域固定高度，避免被右侧整体拉高后两行之间被撑开
+        static let detailLeftStackHeight: CGFloat = 148
     }
 
     // MARK: - UI Components
@@ -92,8 +94,9 @@ final class LaboratoryResultView: UIVisualEffectView {
         // Left Side: Process Details
         let detailStack = UIStackView(arrangedSubviews: [resultReachedLabel, resultFinalLabel])
         detailStack.axis = .vertical
-        detailStack.spacing = 16
-        detailStack.distribution = .equalSpacing
+        detailStack.spacing = 6
+        detailStack.alignment = .fill
+        detailStack.distribution = .fill
 
         // Right Side: Title, Parameters, Actions
         let titleStack = UIStackView(arrangedSubviews: [resultTitleLabel, resultParameterLabel])
@@ -113,11 +116,16 @@ final class LaboratoryResultView: UIVisualEffectView {
         mainStack.axis = .horizontal
         mainStack.spacing = 40
         mainStack.distribution = .fillEqually
+        mainStack.alignment = .top
 
         contentView.addSubview(mainStack)
 
         mainStack.snp.makeConstraints { make in
             make.edges.equalToSuperview().inset(32)
+        }
+
+        detailStack.snp.makeConstraints { make in
+            make.height.equalTo(Theme.detailLeftStackHeight)
         }
 
         retryBtn.snp.makeConstraints { make in
