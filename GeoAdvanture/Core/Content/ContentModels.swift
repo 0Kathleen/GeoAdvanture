@@ -60,3 +60,20 @@ struct CrustSceneDef: Codable {
     let imageName: String
     let realImageName: String
 }
+
+// MARK: - 解锁规则（对应 UnlockRules.json）
+
+/// 单条解锁目标：把「游戏事件」映射到要解锁的内容
+struct UnlockTarget: Codable {
+    let kind: String   // 对应 UnlockKind: medal / crustScene / harvest
+    let id: String
+}
+
+struct UnlockRule: Codable {
+    let event: String
+    let unlock: [UnlockTarget]
+}
+
+struct UnlockRulesData: Codable {
+    let rules: [UnlockRule]
+}

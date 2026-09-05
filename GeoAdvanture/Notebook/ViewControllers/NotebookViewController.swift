@@ -236,6 +236,11 @@ class NotebookViewController: UIViewController {
         viewModel = NotebookViewModel(layerIndex: initialEarthLayerIndex)
         updateBookmarkVisibility()
         updateContentArea()
+
+        // 打开地壳笔记本 → 解锁「岩石探索」收获
+        if let layerId = ContentStore.shared.layer(at: initialEarthLayerIndex - 1)?.id {
+            UnlockRuleEngine.shared.handle("notebook.open.\(layerId)")
+        }
     }
 
     private func updateBookmarkVisibility() {

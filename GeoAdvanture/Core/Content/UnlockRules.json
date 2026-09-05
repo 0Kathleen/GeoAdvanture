@@ -1,0 +1,28 @@
+{
+  "rules": [
+    {
+      "event": "crust.scene.mountain_cc",
+      "unlock": [{ "kind": "harvest", "id": "harvest_movement" }]
+    },
+    {
+      "event": "crust.scene.trench_oc",
+      "unlock": [{ "kind": "harvest", "id": "harvest_volcano" }]
+    },
+    {
+      "event": "crust.scene.rift_cc",
+      "unlock": [{ "kind": "harvest", "id": "harvest_crack" }]
+    },
+    {
+      "event": "crust.scene.rift_oo",
+      "unlock": [{ "kind": "harvest", "id": "harvest_lava" }]
+    },
+    {
+      "event": "lab.reachCore",
+      "unlock": [{ "kind": "harvest", "id": "harvest_diamond" }]
+    },
+    {
+      "event": "notebook.open.crust",
+      "unlock": [{ "kind": "harvest", "id": "harvest_rock" }]
+    }
+  ]
+}

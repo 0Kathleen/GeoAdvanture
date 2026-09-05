@@ -236,6 +236,8 @@ extension LaboratoryViewController: LaboratorySceneDelegate {
                 self.notificationHaptic.notificationOccurred(.success)
                 LearningEventBus.shared.post(action: LearningAction(type: .success(source: "实验室", target: "成功抵达地心")))
                 LearningEventBus.shared.post(action: LearningAction(type: .stepCompleted))
+                // 抵达地心成功 → 解锁「宝石与矿物」收获
+                UnlockRuleEngine.shared.handle("lab.reachCore")
             } else {
                 self.notificationHaptic.notificationOccurred(.error)
                 LearningEventBus.shared.post(action: LearningAction(type: .error(source: "实验室", target: "样本在\(result.reachedLayer)损毁")))

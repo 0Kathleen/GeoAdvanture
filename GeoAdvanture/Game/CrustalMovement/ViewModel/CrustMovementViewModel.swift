@@ -74,26 +74,23 @@ final class CrustMovementViewModel {
     func unlockScene(for result: GeologyFormationResult) {
         switch result {
         case .mountain(let location, _):
-            if location == "喜马拉雅山脉" { 
-                unlockedScenes[0].isUnlocked = true
-                GameProgressManager.shared.unlockCrustScene(id: unlockedScenes[0].id)
-            }
+            if location == "喜马拉雅山脉" { unlockScene(id: "mountain_cc") }
         case .trench(let location, _):
-            if location == "安第斯山脉" { 
-                unlockedScenes[1].isUnlocked = true
-                GameProgressManager.shared.unlockCrustScene(id: unlockedScenes[1].id)
-            }
+            if location == "安第斯山脉" { unlockScene(id: "trench_oc") }
         case .rift(let location, _):
-            if location == "东非大裂谷" { 
-                unlockedScenes[2].isUnlocked = true
-                GameProgressManager.shared.unlockCrustScene(id: unlockedScenes[2].id)
-            }
-            else if location == "大西洋中脊" { 
-                unlockedScenes[3].isUnlocked = true
-                GameProgressManager.shared.unlockCrustScene(id: unlockedScenes[3].id)
-            }
+            if location == "东非大裂谷" { unlockScene(id: "rift_cc") }
+            else if location == "大西洋中脊" { unlockScene(id: "rift_oo") }
         case .none: break
         }
+    }
+
+    /// 按 id 解锁地壳场景：更新内存状态 + 持久化进度 + 触发解锁规则（连带解锁对应收获）
+    private func unlockScene(id: String) {
+        if let index = unlockedScenes.firstIndex(where: { $0.id == id }) {
+            unlockedScenes[index].isUnlocked = true
+        }
+        GameProgressManager.shared.unlockCrustScene(id: id)
+        UnlockRuleEngine.shared.handle("crust.scene.\(id)")
     }
     
     // MARK: - Logic

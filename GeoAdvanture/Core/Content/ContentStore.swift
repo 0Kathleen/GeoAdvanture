@@ -18,12 +18,15 @@ final class ContentStore {
     let medals: [MedalDef]
     /// 地壳探险场景定义
     let crustScenes: [CrustSceneDef]
+    /// 解锁规则（事件 → 解锁目标）
+    let unlockRules: [UnlockRule]
 
     private init() {
         layers = Self.decode(NotebookData.self, from: "NotebookKnowledge")?.layers ?? []
         medals = Self.decode([MedalDef].self, from: "Medals") ?? []
         crustScenes = Self.decode([CrustSceneDef].self, from: "CrustScenes") ?? []
-        print("✅ ContentStore 加载完成：圈层 \(layers.count) / 勋章 \(medals.count) / 地壳场景 \(crustScenes.count)")
+        unlockRules = Self.decode(UnlockRulesData.self, from: "UnlockRules")?.rules ?? []
+        print("✅ ContentStore 加载完成：圈层 \(layers.count) / 勋章 \(medals.count) / 地壳场景 \(crustScenes.count) / 规则 \(unlockRules.count)")
     }
 
     // MARK: - 查询便捷方法
