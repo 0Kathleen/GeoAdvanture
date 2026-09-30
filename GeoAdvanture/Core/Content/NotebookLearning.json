@@ -1,0 +1,502 @@
+{
+  "schemaVersion": 2,
+  "layers": [
+    {
+      "layerId": "crust",
+      "heroQuestion": "脚下的地面这么坚硬，为什么还会移动？",
+      "heroSummary": "从岩石和矿物出发，观察板块运动、裂谷、火山与岩浆怎样共同改变地壳。",
+      "inquiries": [
+        {
+          "id": "inquiry_crust_materials",
+          "title": "地壳由什么组成？",
+          "predictionPrompt": "岩石和矿物是一回事吗？",
+          "explanation": "地壳主要由岩石组成，岩石又常由一种或多种矿物组成。岩石记录形成过程，矿物则有较稳定的成分和晶体结构。",
+          "misconception": "宝石不是一种独立岩石类别；许多宝石是具有美观、稀有或耐久特征的矿物。",
+          "visualMode": "crustMaterials",
+          "linkedPOIIds": ["poi_crust_rock", "poi_crust_diamond"],
+          "knowledgeTopicIds": ["harvest_rock", "harvest_diamond"]
+        },
+        {
+          "id": "inquiry_crust_motion",
+          "title": "坚硬的地壳为什么会移动？",
+          "predictionPrompt": "把两块板块推到一起，会形成山脉还是裂谷？",
+          "explanation": "坚硬的岩石圈分成许多板块。板块在漫长时间中缓慢移动，相互挤压、拉张或错动，从而改变地表。",
+          "misconception": "板块运动很慢，游戏把数百万年的变化压缩到了几十秒。",
+          "visualMode": "plateMotion",
+          "linkedPOIIds": ["poi_crust_plate", "poi_crust_crack"],
+          "knowledgeTopicIds": ["harvest_movement", "harvest_crack"]
+        },
+        {
+          "id": "inquiry_crust_magma",
+          "title": "火山和岩浆是什么关系？",
+          "predictionPrompt": "岩浆冲出地表后还叫岩浆吗？",
+          "explanation": "岩浆是地下的熔融或部分熔融物质；到达地表后称为熔岩。火山则是岩浆、气体和碎屑到达地表所形成的通道与地貌系统。",
+          "misconception": "地幔大部分不是液态岩浆，岩浆只在特定条件和区域形成。",
+          "visualMode": "volcanoSection",
+          "linkedPOIIds": ["poi_crust_volcano", "poi_crust_lava"],
+          "knowledgeTopicIds": ["harvest_volcano", "harvest_lava"]
+        }
+      ],
+      "knowledgeTopics": [
+        {
+          "id": "harvest_movement",
+          "layerId": "crust",
+          "title": "板块运动",
+          "coreQuestion": "为什么板块碰撞会形成山脉或海沟？",
+          "causalSteps": [
+            {"id": "movement_1", "text": "板块在漫长时间中相向移动"},
+            {"id": "movement_2", "text": "边界处岩层受到挤压，或较致密板块发生俯冲"},
+            {"id": "movement_3", "text": "岩层褶皱隆起，或形成深海沟与火山弧"},
+            {"id": "movement_4", "text": "地表形成山脉、海沟等大型地貌"}
+          ],
+          "evidenceSourceIds": ["poi_crust_plate"],
+          "misconception": "山脉不是一次碰撞突然弹出来的，真实变化通常持续数百万年。",
+          "transferChallengeId": "transfer_plate_motion",
+          "relatedTopicIds": ["harvest_crack", "harvest_volcano"],
+          "knowledgeToolId": "tool_plate_boundary_overlay",
+          "summaryCards": [
+            {"title": "形成过程", "content": "板块相向移动时，岩层会受挤压。两块大陆板块相遇时，岩层容易褶皱、增厚并隆起；较致密的海洋板块则可能向下俯冲。"},
+            {"title": "真实例子", "content": "喜马拉雅山脉与大陆板块碰撞有关；安第斯山脉和秘鲁—智利海沟与海洋板块向大陆板块下方俯冲有关。"}
+          ]
+        },
+        {
+          "id": "harvest_rock",
+          "layerId": "crust",
+          "title": "岩石探索",
+          "coreQuestion": "三类岩石怎样形成，又怎样互相转化？",
+          "causalSteps": [
+            {"id": "rock_1", "text": "岩浆冷却可以形成火成岩"},
+            {"id": "rock_2", "text": "碎屑沉积、压实可以形成沉积岩"},
+            {"id": "rock_3", "text": "旧岩石在高温高压下可以形成变质岩"},
+            {"id": "rock_4", "text": "抬升、风化、熔融等过程让三类岩石不断循环"}
+          ],
+          "evidenceSourceIds": ["collect_igneous", "poi_crust_rock"],
+          "misconception": "岩石不是单一物质；许多岩石是多种矿物的集合。",
+          "transferChallengeId": "transfer_rock_cycle",
+          "relatedTopicIds": ["harvest_diamond", "harvest_lava"],
+          "knowledgeToolId": "tool_rock_composition_overlay",
+          "summaryCards": [
+            {"title": "三类岩石", "content": "火成岩来自岩浆或熔岩冷却；沉积岩来自碎屑沉积与压实；变质岩来自旧岩石在高温高压下的改变。"},
+            {"title": "岩石循环", "content": "岩石会经历风化、沉积、变质、熔融和冷却，因此三类岩石能在漫长时间中互相转化。"}
+          ]
+        },
+        {
+          "id": "harvest_crack",
+          "layerId": "crust",
+          "title": "裂谷形成",
+          "coreQuestion": "板块拉开时，为什么中间会形成低谷？",
+          "causalSteps": [
+            {"id": "rift_1", "text": "地壳受到向两侧的拉张"},
+            {"id": "rift_2", "text": "岩层变薄并出现断层"},
+            {"id": "rift_3", "text": "断层之间的地块逐渐下陷"},
+            {"id": "rift_4", "text": "形成狭长的裂谷或盆地"}
+          ],
+          "evidenceSourceIds": ["poi_crust_crack"],
+          "misconception": "裂谷不是大地瞬间裂成无底深渊，而是拉张、断裂和下陷长期共同作用的结果。",
+          "transferChallengeId": "transfer_rift",
+          "relatedTopicIds": ["harvest_movement", "harvest_lava"],
+          "knowledgeToolId": "tool_fault_overlay",
+          "summaryCards": [
+            {"title": "形成过程", "content": "地壳受到拉张后会变薄、断裂，断层之间的地块下陷，逐渐形成狭长裂谷。"},
+            {"title": "真实例子", "content": "东非大裂谷是大陆内部持续伸展形成的巨大裂谷系统。"}
+          ]
+        },
+        {
+          "id": "harvest_diamond",
+          "layerId": "crust",
+          "title": "矿物与宝石",
+          "coreQuestion": "矿物、岩石和宝石有什么不同？",
+          "causalSteps": [
+            {"id": "mineral_1", "text": "矿物在自然过程中形成，并具有较稳定的成分与晶体结构"},
+            {"id": "mineral_2", "text": "一种或多种矿物可以组成岩石"},
+            {"id": "mineral_3", "text": "部分矿物因美观、稀有和耐久而被用作宝石"}
+          ],
+          "evidenceSourceIds": ["poi_crust_diamond"],
+          "misconception": "颜色相同不代表矿物相同，鉴定还要综合硬度、光泽和晶体形态等线索。",
+          "transferChallengeId": "transfer_mineral",
+          "relatedTopicIds": ["harvest_rock"],
+          "knowledgeToolId": "tool_mineral_identification",
+          "summaryCards": [
+            {"title": "矿物与岩石", "content": "矿物有较稳定的成分和晶体结构；岩石通常由一种或多种矿物组成。"},
+            {"title": "怎样鉴定", "content": "观察颜色之外，还可以比较硬度、光泽、条痕和晶体形态。"}
+          ]
+        },
+        {
+          "id": "harvest_volcano",
+          "layerId": "crust",
+          "title": "火山系统",
+          "coreQuestion": "为什么有些板块边界附近容易出现火山？",
+          "causalSteps": [
+            {"id": "volcano_1", "text": "特定构造环境使地下岩石发生部分熔融"},
+            {"id": "volcano_2", "text": "岩浆因浮力和压力沿裂隙上升"},
+            {"id": "volcano_3", "text": "岩浆、气体和碎屑通过通道到达地表"},
+            {"id": "volcano_4", "text": "反复喷发和堆积形成火山地貌"}
+          ],
+          "evidenceSourceIds": ["poi_crust_volcano"],
+          "misconception": "火山并不是地球内部一直燃烧的火焰，喷出的主要是岩浆、气体和碎屑。",
+          "transferChallengeId": "transfer_volcano",
+          "relatedTopicIds": ["harvest_movement", "harvest_lava"],
+          "knowledgeToolId": "tool_volcano_structure_overlay",
+          "summaryCards": [
+            {"title": "火山结构", "content": "地下岩浆可能聚集在岩浆房中，并沿通道上升，从火山口喷出岩浆、气体和碎屑。"},
+            {"title": "分布规律", "content": "许多火山分布在板块边界附近，也有一部分形成在板块内部的热点地区。"}
+          ]
+        },
+        {
+          "id": "harvest_lava",
+          "layerId": "crust",
+          "title": "岩浆与熔岩",
+          "coreQuestion": "岩浆到达地表后会发生什么？",
+          "causalSteps": [
+            {"id": "magma_1", "text": "地下形成熔融或部分熔融的岩浆"},
+            {"id": "magma_2", "text": "岩浆沿裂隙或火山通道上升"},
+            {"id": "magma_3", "text": "到达地表后称为熔岩"},
+            {"id": "magma_4", "text": "熔岩冷却结晶形成火成岩"}
+          ],
+          "evidenceSourceIds": ["poi_crust_lava"],
+          "misconception": "地下称岩浆，流到地表后称熔岩；两者不是完全不同的材料。",
+          "transferChallengeId": "transfer_magma",
+          "relatedTopicIds": ["harvest_volcano", "harvest_rock"],
+          "knowledgeToolId": "tool_magma_cooling_prediction",
+          "summaryCards": [
+            {"title": "名称变化", "content": "地下的熔融或部分熔融物质称为岩浆；到达地表后称为熔岩。"},
+            {"title": "形成新岩石", "content": "熔岩逐渐冷却并结晶，会形成火成岩，成为地壳的一部分。"}
+          ]
+        }
+      ],
+      "integratedMissionId": "mission_crust_detective"
+    },
+    {
+      "layerId": "mantle",
+      "heroQuestion": "地幔明明大部分是固体，为什么还能缓慢流动？",
+      "heroSummary": "认识高温高压下能缓慢变形的岩石，以及它和板块、岩浆之间的联系。",
+      "inquiries": [],
+      "knowledgeTopics": [],
+      "integratedMissionId": null
+    },
+    {
+      "layerId": "core",
+      "heroQuestion": "地球最热的地方，为什么里面是固体、外面反而是液体？",
+      "heroSummary": "从温度、压力、地震波和磁场认识地球的金属核心。",
+      "inquiries": [],
+      "knowledgeTopics": [],
+      "integratedMissionId": null
+    }
+  ],
+  "challengeHubs": [
+    {"id": "hub_crust_plate", "poiId": "poi_crust_plate", "title": "世界地貌微模型", "sceneKind": "plateTerrain", "taskIds": ["plate_task_mountain", "plate_task_subduction", "plate_task_rift"], "modelAsset": "model_plate_terrain", "supportsAR": true},
+    {"id": "hub_crust_rock", "poiId": "poi_crust_rock", "title": "岩石标本台", "sceneKind": "specimenTable", "taskIds": ["rock_task_collect"], "modelAsset": "model_crust_rock_table", "supportsAR": false},
+    {
+      "id": "hub_crust_crack", "poiId": "poi_crust_crack", "title": "裂谷考察剖面",
+      "sceneKind": "riftSection", "taskIds": ["rift_task_observe"], "modelAsset": "model_crust_rift_section", "supportsAR": false,
+      "fieldTask": {
+        "id": "rift_task_observe", "kind": "hotspot",
+        "prompt": "地壳向两侧拉张后，剖面中哪一处最能证明裂谷正在形成？",
+        "options": [{"id": "rift_center", "text": "断层之间下陷的中央地块"}, {"id": "stable_side", "text": "远离断层的稳定岩层"}, {"id": "cloud", "text": "剖面上方的云层"}],
+        "correctOptionIds": ["rift_center"],
+        "explanation": "拉张让岩层变薄并产生正断层，断层之间的地块下陷，才形成狭长裂谷。",
+        "observationId": "evidence_rift_fault_block"
+      }
+    },
+    {"id": "hub_crust_diamond", "poiId": "poi_crust_diamond", "title": "矿物晶体陈列台", "sceneKind": "mineralCabinet", "taskIds": ["mineral_task_identify"], "modelAsset": "model_crust_mineral_cabinet", "supportsAR": false},
+    {
+      "id": "hub_crust_volcano", "poiId": "poi_crust_volcano", "title": "火山观测站",
+      "sceneKind": "volcanoObservatory", "taskIds": ["volcano_task_observe"], "modelAsset": "model_crust_volcano_observatory", "supportsAR": false,
+      "fieldTask": {
+        "id": "volcano_task_observe", "kind": "classification",
+        "prompt": "监测仪传回四条记录，选择真正提示岩浆正在向上活动的两条线索。",
+        "options": [{"id": "quake", "text": "浅源小地震突然增多"}, {"id": "bulge", "text": "火山坡缓慢隆起"}, {"id": "rain", "text": "附近短时降雨"}, {"id": "tide", "text": "远海潮汐变化"}],
+        "correctOptionIds": ["quake", "bulge"],
+        "explanation": "岩浆上升会挤裂岩石并顶起地表，因此地震增多和山体隆起需要重点监测。",
+        "observationId": "evidence_volcano_warning"
+      }
+    },
+    {
+      "id": "hub_crust_lava", "poiId": "poi_crust_lava", "title": "岩浆通道剖面",
+      "sceneKind": "magmaSection", "taskIds": ["magma_task_observe"], "modelAsset": "model_crust_magma_section", "supportsAR": false,
+      "fieldTask": {
+        "id": "magma_task_observe", "kind": "causalOrder",
+        "prompt": "沿剖面追踪同一团熔融物质，把它从地下到形成新岩石的过程排好顺序。",
+        "options": [{"id": "melt", "text": "地下岩石部分熔融形成岩浆"}, {"id": "rise", "text": "岩浆沿裂隙和通道上升"}, {"id": "surface", "text": "到达地表后称为熔岩"}, {"id": "cool", "text": "熔岩冷却形成火成岩"}],
+        "correctOptionIds": ["melt", "rise", "surface", "cool"],
+        "explanation": "同一团物质在地下叫岩浆，到达地表叫熔岩，最终冷却凝固成为火成岩。",
+        "observationId": "evidence_magma_route"
+      }
+    }
+  ],
+  "achievementCards": [
+    {
+      "id": "achievement_plate_mountain",
+      "challengeId": "poi_crust_plate",
+      "taskId": "plate_task_mountain",
+      "title": "山脉塑造者",
+      "subtitle": "喜马拉雅山脉修复完成",
+      "actionSummary": "你选择了两块大陆板块，并让它们持续相向移动。",
+      "observationSummary": "边界岩层受到挤压，逐渐增厚、褶皱并隆起。",
+      "rewardTitle": "获得证据：大陆碰撞",
+      "rewardDescription": "这条观察将汇入“板块运动”知识专题。",
+      "artworkAsset": "real_mountain_cc",
+      "symbolName": "mountain.2.fill",
+      "knowledgeTopicId": "harvest_movement"
+    },
+    {
+      "id": "achievement_plate_subduction",
+      "challengeId": "poi_crust_plate",
+      "taskId": "plate_task_subduction",
+      "title": "深海沟发现者",
+      "subtitle": "马里亚纳海沟修复完成",
+      "actionSummary": "你让海洋板块与大陆板块相向移动。",
+      "observationSummary": "较薄、较致密的海洋板块弯曲并向大陆板块下方俯冲。",
+      "rewardTitle": "获得证据：海洋板块俯冲",
+      "rewardDescription": "这条观察将汇入“板块运动”知识专题。",
+      "artworkAsset": "real_trench_oc",
+      "symbolName": "water.waves.and.arrow.down",
+      "knowledgeTopicId": "harvest_movement"
+    },
+    {
+      "id": "achievement_plate_rift",
+      "challengeId": "poi_crust_plate",
+      "taskId": "plate_task_rift",
+      "title": "裂谷工程师",
+      "subtitle": "东非大裂谷修复完成",
+      "actionSummary": "你让两块大陆板块向两侧分离。",
+      "observationSummary": "中间地壳被拉薄、断裂并逐渐下陷。",
+      "rewardTitle": "获得证据：大陆拉张",
+      "rewardDescription": "这条观察将汇入“板块运动”知识专题，并关联裂谷专题。",
+      "artworkAsset": "real_rift_cc",
+      "symbolName": "arrow.left.and.right",
+      "knowledgeTopicId": "harvest_movement"
+    },
+    {
+      "id": "achievement_plate_world_complete",
+      "challengeId": "poi_crust_plate",
+      "taskId": null,
+      "title": "世界地貌修复师",
+      "subtitle": "三处关键地貌全部恢复",
+      "actionSummary": "你完成了碰撞、俯冲与拉张三种板块边界实验。",
+      "observationSummary": "不同的板块类型和运动方向，会留下不同的地貌证据。",
+      "rewardTitle": "点亮专题：板块运动",
+      "rewardDescription": "完整证据组已收入知识总结；3D / AR 观察入口现已出现。",
+      "artworkAsset": "scene_mountain_cc",
+      "symbolName": "globe.asia.australia.fill",
+      "knowledgeTopicId": "harvest_movement"
+    },
+    {
+      "id": "achievement_rock_collect",
+      "challengeId": "poi_crust_rock",
+      "taskId": "rock_task_collect",
+      "title": "第一份岩石样本",
+      "subtitle": "火成岩采集完成",
+      "actionSummary": "你控制敲击力度，沿岩石较安全的位置取下了完整样本。",
+      "observationSummary": "样本具有岩浆或熔岩冷却凝固留下的结构特征。",
+      "rewardTitle": "图鉴新增：火成岩",
+      "rewardDescription": "样本证据将汇入“岩石探索”知识专题。",
+      "artworkAsset": null,
+      "symbolName": "hammer.fill",
+      "knowledgeTopicId": "harvest_rock"
+    },
+    {
+      "id": "achievement_rift_observe",
+      "challengeId": "poi_crust_crack",
+      "taskId": "rift_task_observe",
+      "title": "裂谷剖面调查员",
+      "subtitle": "中央断陷地块定位完成",
+      "actionSummary": "你在剖面中定位了两条断层之间正在下陷的地块。",
+      "observationSummary": "持续拉张会使岩层变薄断裂，中央地块沿断层下降。",
+      "rewardTitle": "获得证据：断层与下陷",
+      "rewardDescription": "现场证据将汇入“裂谷形成”知识专题。",
+      "artworkAsset": null,
+      "symbolName": "arrow.left.and.right",
+      "knowledgeTopicId": "harvest_crack"
+    },
+    {
+      "id": "achievement_mineral_collect",
+      "challengeId": "poi_crust_diamond",
+      "taskId": "mineral_task_identify",
+      "title": "晶体打磨师",
+      "subtitle": "石英晶体样本显露",
+      "actionSummary": "你稳定控制打磨速度，清除了覆盖晶体表面的岩屑。",
+      "observationSummary": "矿物需要结合晶体形态、硬度、光泽和条痕等性质鉴定。",
+      "rewardTitle": "图鉴新增：石英晶体",
+      "rewardDescription": "样本证据将汇入“矿物与宝石”知识专题。",
+      "artworkAsset": null,
+      "symbolName": "diamond.fill",
+      "knowledgeTopicId": "harvest_diamond"
+    },
+    {
+      "id": "achievement_volcano_observe",
+      "challengeId": "poi_crust_volcano",
+      "taskId": "volcano_task_observe",
+      "title": "火山预警观察员",
+      "subtitle": "上升岩浆线索识别完成",
+      "actionSummary": "你从四条监测记录中找出了地震增多和山体隆起。",
+      "observationSummary": "上升岩浆会挤裂周围岩石，并让火山附近地表发生形变。",
+      "rewardTitle": "获得证据：火山活动信号",
+      "rewardDescription": "监测证据将汇入“火山系统”知识专题。",
+      "artworkAsset": null,
+      "symbolName": "waveform.path.ecg",
+      "knowledgeTopicId": "harvest_volcano"
+    },
+    {
+      "id": "achievement_magma_observe",
+      "challengeId": "poi_crust_lava",
+      "taskId": "magma_task_observe",
+      "title": "岩浆路线追踪员",
+      "subtitle": "从地下到火成岩的路径完成",
+      "actionSummary": "你按顺序连接了形成、上升、喷出和冷却四段过程。",
+      "observationSummary": "地下的岩浆到达地表成为熔岩，冷却后形成新的火成岩。",
+      "rewardTitle": "获得证据：岩浆—熔岩—岩石",
+      "rewardDescription": "路径证据将汇入“岩浆与熔岩”知识专题。",
+      "artworkAsset": null,
+      "symbolName": "point.bottomleft.forward.to.point.topright.scurvepath.fill",
+      "knowledgeTopicId": "harvest_lava"
+    }
+  ],
+  "transferChallenges": [
+    {
+      "id": "transfer_plate_motion",
+      "topicId": "harvest_movement",
+      "kind": "singleChoice",
+      "prompt": "一处边界两侧的大陆正在相互靠近，长期来看更可能形成什么？",
+      "options": [{"id": "mountain", "text": "山脉"}, {"id": "rift", "text": "裂谷"}],
+      "correctOptionIds": ["mountain"],
+      "explanation": "大陆板块相互靠近时，岩层受挤压、增厚并隆起，更可能形成山脉。"
+    },
+    {
+      "id": "transfer_rock_cycle",
+      "topicId": "harvest_rock",
+      "kind": "classification",
+      "prompt": "勘察队找到四份记录，选出由岩浆或熔岩冷却直接形成的岩石。",
+      "options": [{"id": "basalt", "text": "玄武岩：熔岩快速冷却"}, {"id": "granite", "text": "花岗岩：地下岩浆缓慢冷却"}, {"id": "sandstone", "text": "砂岩：砂粒沉积压实"}, {"id": "marble", "text": "大理岩：石灰岩受热受压"}],
+      "correctOptionIds": ["basalt", "granite"],
+      "explanation": "玄武岩和花岗岩都属于火成岩，只是一个常在地表快速冷却，一个常在地下缓慢冷却。"
+    },
+    {
+      "id": "transfer_rift",
+      "topicId": "harvest_crack",
+      "kind": "causalOrder",
+      "prompt": "一片大陆正在形成新的裂谷，请把勘察记录按发生顺序排列。",
+      "options": [{"id": "stretch", "text": "大陆地壳受到持续拉张"}, {"id": "thin", "text": "岩层变薄并出现断层"}, {"id": "sink", "text": "断层之间的地块下陷"}, {"id": "valley", "text": "形成狭长裂谷"}],
+      "correctOptionIds": ["stretch", "thin", "sink", "valley"],
+      "explanation": "裂谷不是瞬间张开的裂缝，而是拉张、变薄断裂、地块下陷逐步形成的。"
+    },
+    {
+      "id": "transfer_mineral",
+      "topicId": "harvest_diamond",
+      "kind": "classification",
+      "prompt": "两块矿物颜色相近，选择能帮助你继续鉴定的可靠线索。",
+      "options": [{"id": "hardness", "text": "比较硬度"}, {"id": "luster", "text": "观察光泽"}, {"id": "streak", "text": "比较条痕"}, {"id": "color_only", "text": "只凭颜色下结论"}],
+      "correctOptionIds": ["hardness", "luster", "streak"],
+      "explanation": "颜色容易受杂质影响，可靠鉴定要综合硬度、光泽、条痕和晶体形态等线索。"
+    },
+    {
+      "id": "transfer_volcano",
+      "topicId": "harvest_volcano",
+      "kind": "hotspot",
+      "prompt": "勘察一条俯冲带剖面，轻点最值得布置火山监测站的位置。",
+      "options": [{"id": "volcanic_arc", "text": "俯冲板块上方的火山弧"}, {"id": "deep_ocean", "text": "远离边界的深海平原"}, {"id": "stable_interior", "text": "稳定大陆内部"}],
+      "correctOptionIds": ["volcanic_arc"],
+      "explanation": "俯冲板块释放的流体会促进上方地幔部分熔融，岩浆上升后常在俯冲带陆侧形成火山弧。"
+    },
+    {
+      "id": "transfer_magma",
+      "topicId": "harvest_lava",
+      "kind": "singleChoice",
+      "prompt": "同一团熔融物质从地下流到地表后，名称怎样变化？",
+      "options": [{"id": "magma_lava", "text": "地下叫岩浆，地表叫熔岩"}, {"id": "lava_magma", "text": "地下叫熔岩，地表叫岩浆"}],
+      "correctOptionIds": ["magma_lava"],
+      "explanation": "地下称岩浆，到达地表后称熔岩。"
+    },
+    {
+      "id": "transfer_plate_motion_followup",
+      "topicId": "harvest_movement",
+      "kind": "singleChoice",
+      "prompt": "两块板块持续向两侧分开，最可能出现哪种地貌？",
+      "options": [{"id": "rift", "text": "裂谷"}, {"id": "mountain", "text": "挤压山脉"}, {"id": "stable", "text": "完全不变的平原"}],
+      "correctOptionIds": ["rift"],
+      "explanation": "板块分离会拉薄并拉裂地壳，中间地块可能下陷形成裂谷。"
+    },
+    {
+      "id": "transfer_rock_cycle_followup",
+      "topicId": "harvest_rock",
+      "kind": "singleChoice",
+      "prompt": "一块石灰岩长期受到高温高压改造，最可能变成什么？",
+      "options": [{"id": "marble", "text": "大理岩"}, {"id": "sandstone", "text": "砂岩"}, {"id": "magma", "text": "仍然是岩浆"}],
+      "correctOptionIds": ["marble"],
+      "explanation": "石灰岩受到高温高压变质后，可以形成大理岩。"
+    },
+    {
+      "id": "transfer_rift_followup",
+      "topicId": "harvest_crack",
+      "kind": "classification",
+      "prompt": "选择能够支持“这里正在形成裂谷”的现场现象。",
+      "options": [{"id": "fault", "text": "出现正断层"}, {"id": "thin", "text": "地壳逐渐变薄"}, {"id": "sink", "text": "中间地块下陷"}, {"id": "thicken", "text": "岩层挤压增厚"}],
+      "correctOptionIds": ["fault", "thin", "sink"],
+      "explanation": "拉张、变薄、断裂和下陷共同构成裂谷形成的重要线索。"
+    },
+    {
+      "id": "transfer_mineral_followup",
+      "topicId": "harvest_diamond",
+      "kind": "singleChoice",
+      "prompt": "一块闪亮物质只因颜色漂亮，就能直接判断它是钻石吗？",
+      "options": [{"id": "no", "text": "不能，还要检查硬度、光泽和晶形"}, {"id": "yes", "text": "能，颜色漂亮就一定是钻石"}, {"id": "weight", "text": "只称重量就能确定"}],
+      "correctOptionIds": ["no"],
+      "explanation": "矿物鉴定不能只看颜色，需要综合多种稳定特征。"
+    },
+    {
+      "id": "transfer_volcano_followup",
+      "topicId": "harvest_volcano",
+      "kind": "classification",
+      "prompt": "选择可能提示火山活动正在增强的监测变化。",
+      "options": [{"id": "quake", "text": "浅源小地震增多"}, {"id": "bulge", "text": "火山坡缓慢隆起"}, {"id": "gas", "text": "火山气体发生变化"}, {"id": "tide", "text": "远海潮汐正常变化"}],
+      "correctOptionIds": ["quake", "bulge", "gas"],
+      "explanation": "地震、形变和气体变化都是火山监测的重要线索，需要综合判断。"
+    },
+    {
+      "id": "transfer_magma_followup",
+      "topicId": "harvest_lava",
+      "kind": "singleChoice",
+      "prompt": "熔岩流到地表并逐渐冷却后，最可能形成什么？",
+      "options": [{"id": "igneous", "text": "火成岩"}, {"id": "sediment", "text": "直接变成沉积岩"}, {"id": "water", "text": "直接变成地下水"}],
+      "correctOptionIds": ["igneous"],
+      "explanation": "熔岩冷却凝固后会形成火成岩，例如玄武岩。"
+    }
+  ],
+  "integratedMissions": [
+    {
+      "id": "mission_crust_detective",
+      "layerId": "crust",
+      "title": "地质侦探：神秘小岛",
+      "requiredTopicIds": ["harvest_movement", "harvest_crack", "harvest_volcano", "harvest_lava", "harvest_rock"],
+      "steps": [
+        {
+          "id": "detective_boundary",
+          "prompt": "小岛两侧的地表正在缓慢分离，中间出现断层。这里最可能处于什么环境？",
+          "topicIds": ["harvest_movement", "harvest_crack"],
+          "kind": "singleChoice",
+          "options": [{"id": "rift", "text": "拉张形成的裂谷环境"}, {"id": "collision", "text": "大陆碰撞环境"}],
+          "correctOptionIds": ["rift"],
+          "explanation": "地表分离、断层和中间下陷都是拉张裂谷的重要线索。"
+        },
+        {
+          "id": "detective_volcano",
+          "prompt": "裂缝附近出现上升的高温熔融物质，到达地表后应该称为什么？",
+          "topicIds": ["harvest_volcano", "harvest_lava"],
+          "kind": "singleChoice",
+          "options": [{"id": "lava", "text": "熔岩"}, {"id": "magma", "text": "仍只叫岩浆"}],
+          "correctOptionIds": ["lava"],
+          "explanation": "地下称岩浆，到达地表后称熔岩。"
+        },
+        {
+          "id": "detective_rock",
+          "prompt": "熔岩冷却后形成了新的黑色岩石，它属于哪一大类？",
+          "topicIds": ["harvest_lava", "harvest_rock"],
+          "kind": "singleChoice",
+          "options": [{"id": "igneous", "text": "火成岩"}, {"id": "sedimentary", "text": "沉积岩"}],
+          "correctOptionIds": ["igneous"],
+          "explanation": "熔岩冷却结晶形成火成岩。"
+        }
+      ]
+    }
+  ]
+}

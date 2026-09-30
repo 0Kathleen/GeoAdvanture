@@ -1,28 +1,32 @@
 {
   "rules": [
     {
-      "event": "crust.scene.mountain_cc",
+      "event": "poi.discover.poi_crust_plate",
       "unlock": [{ "kind": "harvest", "id": "harvest_movement" }]
     },
     {
-      "event": "crust.scene.trench_oc",
-      "unlock": [{ "kind": "harvest", "id": "harvest_volcano" }]
+      "event": "collectible.get.collect_igneous",
+      "unlock": [{ "kind": "harvest", "id": "harvest_rock" }]
     },
     {
-      "event": "crust.scene.rift_cc",
+      "event": "poi.discover.poi_crust_crack",
       "unlock": [{ "kind": "harvest", "id": "harvest_crack" }]
     },
     {
-      "event": "crust.scene.rift_oo",
-      "unlock": [{ "kind": "harvest", "id": "harvest_lava" }]
-    },
-    {
-      "event": "lab.reachCore",
+      "event": "poi.discover.poi_crust_diamond",
       "unlock": [{ "kind": "harvest", "id": "harvest_diamond" }]
     },
     {
-      "event": "notebook.open.crust",
-      "unlock": [{ "kind": "harvest", "id": "harvest_rock" }]
+      "event": "collectible.get.collect_quartz",
+      "unlock": [{ "kind": "harvest", "id": "harvest_diamond" }]
+    },
+    {
+      "event": "poi.discover.poi_crust_volcano",
+      "unlock": [{ "kind": "harvest", "id": "harvest_volcano" }]
+    },
+    {
+      "event": "poi.discover.poi_crust_lava",
+      "unlock": [{ "kind": "harvest", "id": "harvest_lava" }]
     }
   ]
 }

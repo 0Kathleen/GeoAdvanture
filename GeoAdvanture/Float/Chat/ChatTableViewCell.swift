@@ -146,8 +146,7 @@ final class ChatCell: UITableViewCell {
         let p = NSMutableParagraphStyle()
         p.lineSpacing = 4
         return [
-            // TODO: 更换字体
-            .font: UIFont(name: "FZCKJW--GB1-0", size: 20) ?? UIFont.systemFont(ofSize: 20),
+            .font: GeoTheme.Typography.body(size: 16),
             .paragraphStyle: p,
             .foregroundColor: AIChatTextColors.messagePrimary
         ]

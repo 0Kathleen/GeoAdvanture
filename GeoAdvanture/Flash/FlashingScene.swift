@@ -37,20 +37,30 @@ class FlashingScene:SKScene{
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = touches.first else { return }
         let location = touch.location(in: self)
-        guard let node = self.atPoint(location) as? SKSpriteNode else { return }
-        
-        if node.name == "startExploreNode" {
-            node.removeAction(forKey: "fadeLoop")
-            node.alpha = 1.0
-            onEnterHomeScene?()
+        guard let node = nodes(at: location).lazy.compactMap(startExploreNode(from:)).first else { return }
+        node.removeAction(forKey: "fadeLoop")
+        node.alpha = 1.0
+        onEnterHomeScene?()
+    }
+
+    /// `.sks` 按钮可能包含图片、文字等子节点；点到任一子节点都应视为点击整个按钮。
+    private func startExploreNode(from hitNode: SKNode) -> SKNode? {
+        var current: SKNode? = hitNode
+        while let node = current {
+            if node.name == "startExploreNode" { return node }
+            current = node.parent
         }
+        return nil
     }
     
     private func setupCurrentScene() {
         if let node = self.childNode(withName: "startExploreNode") {
             startNode = node as? SKSpriteNode
-            addFadeAnimation(to: node)
+            if !UIAccessibility.isReduceMotionEnabled {
+                addFadeAnimation(to: node)
+            }
         }
+        guard !UIAccessibility.isReduceMotionEnabled else { return }
         // 延迟执行动画
         DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) { [weak self] in
             self?.addDimondFadeAnimation()

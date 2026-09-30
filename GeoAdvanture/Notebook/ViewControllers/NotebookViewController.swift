@@ -12,8 +12,11 @@ class NotebookViewController: UIViewController {
     var initialEarthLayerIndex: Int = 1
 
     // MARK: - State
-    private var selectedBookmarkIndex: Int = 0
+    private var selectedPage: NotebookPage = .intro
     private var currentContentViewController: UIViewController?
+    /// 每个页签只创建一次，切换时保留展开、滚动和定位状态。
+    private var pageViewControllers: [NotebookPage: UIViewController] = [:]
+    private var isRefreshScheduled = false
     private var lastAppliedEarthLayerIndex: Int?
     private var viewModel: NotebookViewModel!
 
@@ -45,9 +48,11 @@ class NotebookViewController: UIViewController {
         return v
     }()
 
+    private static let bookmarkCount = NotebookPage.allCases.count
+
     /// 书签条：相对笔记本内容区顶部靠右，纵向排列
     private lazy var bookmarkButtons: [UIButton] = {
-        (0..<4).map { idx in
+        (0..<Self.bookmarkCount).map { idx in
             let b = UIButton(type: .custom)
             b.tag = idx
             b.setImage(UIImage(named: NotebookResourceNames.bookmarkNormal[idx]), for: .normal)
@@ -67,7 +72,7 @@ class NotebookViewController: UIViewController {
 
     /// 左侧：已翻过的书签，纵向叠放
     private lazy var selectedBookmarkButtons: [UIButton] = {
-        (0..<4).map { idx in
+        (0..<Self.bookmarkCount).map { idx in
             let b = UIButton(type: .custom)
             b.tag = idx
             b.setImage(UIImage(named: NotebookResourceNames.bookmarkSelected[idx]), for: .normal)
@@ -94,7 +99,7 @@ class NotebookViewController: UIViewController {
     private let topTitleLabel: UILabel = {
         let l = UILabel()
         l.font = NotebookTypography.topTitleFont(size: 24)
-        l.textColor = UIColor(red: 0x52/255, green: 0x38/255, blue: 0x36/255, alpha: 1)
+        l.textColor = GeoTheme.Color.ink
         l.textAlignment = .center
         return l
     }()
@@ -109,6 +114,7 @@ class NotebookViewController: UIViewController {
         title = nil
 
         setupUI()
+        observeProgressChanges()
         configureForLayerEntry()
         lastAppliedEarthLayerIndex = initialEarthLayerIndex
     }
@@ -118,6 +124,8 @@ class NotebookViewController: UIViewController {
         if lastAppliedEarthLayerIndex != initialEarthLayerIndex {
             lastAppliedEarthLayerIndex = initialEarthLayerIndex
             configureForLayerEntry()
+        } else {
+            refreshCurrentPage()
         }
         
         let context = LevelContext(
@@ -135,7 +143,8 @@ class NotebookViewController: UIViewController {
     }
 
     deinit {
-        removeCurrentContentViewController()
+        NotificationCenter.default.removeObserver(self)
+        removeAllPageViewControllers()
     }
 
     // MARK: - setupUI
@@ -166,13 +175,12 @@ class NotebookViewController: UIViewController {
         topTitleLabel.snp.makeConstraints { make in
             make.center.equalToSuperview()
         }
-
         /// 未翻书签
         notebookContentView.addSubview(bookmarkStackView)
         fillBookmarkStackWithStaggeredRows(bookmarkStackView, buttons: bookmarkButtons)
         bookmarkStackView.snp.makeConstraints { make in
             make.top.equalToSuperview().offset(NotebookLayout.bookmarkBarTop)
-            make.leading.equalToSuperview().offset(NotebookLayout.bookmarkBarLeading)
+            make.trailing.equalToSuperview().inset(6)
             make.height.equalTo(NotebookLayout.bookmarkBarSize.height)
             make.width.equalTo(NotebookLayout.bookmarkBarSize.width)
         }
@@ -221,9 +229,8 @@ class NotebookViewController: UIViewController {
     
     // MARK: - Action
     @objc private func bookmarkTapped(_ sender: UIButton) {
-        selectedBookmarkIndex = sender.tag
-        updateBookmarkVisibility()
-        updateContentArea()
+        guard let page = NotebookPage(rawValue: sender.tag) else { return }
+        navigate(to: .init(page: page, focus: nil), animated: true)
     }
 
     @objc func closeTapped() {
@@ -232,77 +239,137 @@ class NotebookViewController: UIViewController {
 
     // MARK: - configure
     private func configureForLayerEntry() {
-        selectedBookmarkIndex = 0
+        removeAllPageViewControllers()
+        selectedPage = .intro
         viewModel = NotebookViewModel(layerIndex: initialEarthLayerIndex)
         updateBookmarkVisibility()
-        updateContentArea()
-
-        // 打开地壳笔记本 → 解锁「岩石探索」收获
-        if let layerId = ContentStore.shared.layer(at: initialEarthLayerIndex - 1)?.id {
-            UnlockRuleEngine.shared.handle("notebook.open.\(layerId)")
-        }
+        showSelectedPage(animated: false, focus: nil)
+        // R-3：知识卡不再靠「打开笔记本」自动解锁，改为在「闯关地图」完成对应关键点后点亮。
     }
 
     private func updateBookmarkVisibility() {
-        let k = selectedBookmarkIndex
-        for i in 0..<4 {
+        let k = selectedPage.rawValue
+        for i in 0..<Self.bookmarkCount {
             selectedBookmarkButtons[i].isHidden = !(i <= k)
             bookmarkButtons[i].isHidden = !(i > k)
         }
     }
     
-    private func updateContentArea() {
+    private func showSelectedPage(animated: Bool, focus: NotebookFocusTarget?) {
         let oldVC = currentContentViewController
-        
-        let newVC: UIViewController
-        let bookmarkTitle = NotebookContent.bookmarkTitles[selectedBookmarkIndex]
-        let layerTitle = viewModel.layerName
-        
-        topTitleLabel.text = "【\(bookmarkTitle)】\(layerTitle)"
-        
-        switch selectedBookmarkIndex {
-        case 0:
-            newVC = NotebookIntroViewController(viewModel: viewModel)
-        case 1:
-            newVC = NotebookMapViewController(viewModel: viewModel)
-        case 2:
-            newVC = NotebookHarvestViewController(viewModel: viewModel)
-        default:
-            newVC = NotebookSubPageViewController(bookmarkIndex: selectedBookmarkIndex, viewModel: viewModel)
+        let newVC = pageViewController(for: selectedPage)
+
+        topTitleLabel.text = selectedPage == .explore
+            ? "生活百科"
+            : "\(viewModel.layerName) · \(selectedPage.title)"
+        // “认识”页右侧已有完整的大问题标题，继续显示中央气泡会遮挡内容并造成重复。
+        topCenterTitle.isHidden = selectedPage == .intro
+        (newVC as? NotebookPageContent)?.refreshContent()
+
+        guard oldVC !== newVC else {
+            if let focus { (newVC as? NotebookPageContent)?.focus(on: focus, animated: animated) }
+            return
         }
-        
-        addChild(newVC)
-        
-        if let oldVC = oldVC {
-            oldVC.willMove(toParent: nil)
-            
-            // 使用交叉溶解（Cross Dissolve）作为书签切换的平滑过渡动画
-            UIView.transition(with: contentContainerView, duration: 0.35, options: .transitionCrossDissolve, animations: {
-                oldVC.view.removeFromSuperview()
-                self.contentContainerView.addSubview(newVC.view)
-                newVC.view.snp.makeConstraints { make in
-                    make.edges.equalToSuperview()
-                }
-            }, completion: { _ in
-                oldVC.removeFromParent()
-                newVC.didMove(toParent: self)
-            })
+
+        let installNewView = {
+            oldVC?.view.removeFromSuperview()
+            self.contentContainerView.addSubview(newVC.view)
+            newVC.view.snp.makeConstraints { make in make.edges.equalToSuperview() }
+        }
+
+        if animated, oldVC != nil {
+            UIView.transition(
+                with: contentContainerView,
+                duration: 0.25,
+                options: [.transitionCrossDissolve, .allowAnimatedContent],
+                animations: installNewView,
+                completion: { _ in
+                    if let focus {
+                        (newVC as? NotebookPageContent)?.focus(on: focus, animated: true)
+                    }
+                })
         } else {
-            contentContainerView.addSubview(newVC.view)
-            newVC.view.snp.makeConstraints { make in
-                make.edges.equalToSuperview()
-            }
-            newVC.didMove(toParent: self)
+            installNewView()
+            if let focus { (newVC as? NotebookPageContent)?.focus(on: focus, animated: false) }
         }
-        
+
         currentContentViewController = newVC
     }
 
-    private func removeCurrentContentViewController() {
-        guard let child = currentContentViewController else { return }
-        child.willMove(toParent: nil)
-        child.view.removeFromSuperview()
-        child.removeFromParent()
+    private func pageViewController(for page: NotebookPage) -> UIViewController {
+        if let cached = pageViewControllers[page] { return cached }
+
+        let controller: UIViewController
+        switch page {
+        case .intro:
+            let intro = NotebookIntroViewController(viewModel: viewModel)
+            intro.notebookNavigationDelegate = self
+            controller = intro
+        case .map:
+            let map = NotebookMapViewController(viewModel: viewModel)
+            map.notebookNavigationDelegate = self
+            controller = map
+        case .summary:
+            let summary = KnowledgeSummaryViewController(viewModel: viewModel)
+            summary.notebookNavigationDelegate = self
+            controller = summary
+        case .explore:
+            controller = NotebookLifeEncyclopediaViewController(viewModel: viewModel)
+        }
+
+        addChild(controller)
+        controller.didMove(toParent: self)
+        pageViewControllers[page] = controller
+        return controller
+    }
+
+    private func removeAllPageViewControllers() {
+        for child in pageViewControllers.values {
+            child.willMove(toParent: nil)
+            child.viewIfLoaded?.removeFromSuperview()
+            child.removeFromParent()
+        }
+        pageViewControllers.removeAll()
         currentContentViewController = nil
+    }
+
+    private func observeProgressChanges() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(progressDidChange),
+            name: .didChangeKnowledgeProgress,
+            object: nil)
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(progressDidChange),
+            name: .didUnlockContent,
+            object: nil)
+    }
+
+    @objc private func progressDidChange() {
+        guard !isRefreshScheduled else { return }
+        isRefreshScheduled = true
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.isRefreshScheduled = false
+            self.refreshCurrentPage()
+        }
+    }
+
+    private func refreshCurrentPage() {
+        (currentContentViewController as? NotebookPageContent)?.refreshContent()
+    }
+
+    /// 后续三个页面及关卡结果页统一使用此入口跨页定位。
+    func navigate(to request: NotebookNavigationRequest, animated: Bool = true) {
+        selectedPage = request.page
+        updateBookmarkVisibility()
+        showSelectedPage(animated: animated, focus: request.focus)
+    }
+}
+
+extension NotebookViewController: NotebookPageNavigationDelegate {
+    func notebookPageRequestsNavigation(_ request: NotebookNavigationRequest, animated: Bool) {
+        navigate(to: request, animated: animated)
     }
 }

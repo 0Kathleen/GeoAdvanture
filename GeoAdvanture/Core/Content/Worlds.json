@@ -1,0 +1,56 @@
+[
+  {
+    "id": "crust",
+    "index": 0,
+    "title": "地壳",
+    "mood": "warm earthy cave, sunlit amber tones",
+    "backgroundAsset": "bg_crust",
+    "widthScreens": 3.0,
+    "rewardInstrumentId": null,
+    "completionRequirement": {
+      "kind": "completePOIs",
+      "poiIds": ["poi_crust_plate"]
+    }
+  },
+  {
+    "id": "mantle",
+    "index": 1,
+    "title": "地幔",
+    "mood": "molten glowing orange-red, flowing magma",
+    "backgroundAsset": "bg_mantle",
+    "widthScreens": 3.0,
+    "rewardInstrumentId": "instr_thermal",
+    "completionRequirement": {
+      "kind": "completePOIs",
+      "poiIds": ["poi_mantle_lab"]
+    }
+  },
+  {
+    "id": "outer_core",
+    "index": 2,
+    "title": "外核",
+    "mood": "deep liquid-metal blue, glowing magnetic cyan",
+    "backgroundAsset": "bg_outer",
+    "widthScreens": 3.0,
+    "rewardInstrumentId": "instr_seismic",
+    "completionRequirement": {
+      "kind": "completePOIs",
+      "poiIds": ["poi_outer_magstorm"]
+    },
+    "comingSoon": true
+  },
+  {
+    "id": "inner_core",
+    "index": 3,
+    "title": "内核",
+    "mood": "dense metallic silver-white, high-pressure glow",
+    "backgroundAsset": "bg_inner",
+    "widthScreens": 3.0,
+    "rewardInstrumentId": null,
+    "completionRequirement": {
+      "kind": "completePOIs",
+      "poiIds": ["poi_inner_seismic"]
+    },
+    "comingSoon": true
+  }
+]

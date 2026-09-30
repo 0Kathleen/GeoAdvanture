@@ -15,6 +15,7 @@ class AIChatManager {
 
     private var currentResponseIndex: Int?
     private var isStreamActive: Bool = false
+    var contextPrompt: String?
     
     public func addGreetingMessage() {
         let greeting = Word(role: "AI", text: "你好呀！我是岩小探，地球深处的小精灵。你想了解关于地球的什么秘密呢？")
@@ -46,7 +47,7 @@ class AIChatManager {
             "model": "qwen-plus-character",
             "stream": true,
             "messages": [
-                ["role": "system", "content": systemPrompt],
+                ["role": "system", "content": [systemPrompt, contextPrompt].compactMap { $0 }.joined(separator: "\n\n")],
                 ["role": "user", "content": userInput]
             ]
         ]

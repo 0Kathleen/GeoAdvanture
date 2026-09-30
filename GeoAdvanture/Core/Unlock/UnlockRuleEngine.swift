@@ -34,6 +34,7 @@ final class UnlockRuleEngine {
 
     /// 处理一个游戏事件，解锁其映射的全部内容（幂等）。
     func handle(_ event: String) {
+        recordLearningEvidenceIfNeeded(event)
         guard let targets = rulesByEvent[event] else { return }
         for t in targets {
             guard let kind = UnlockKind(rawValue: t.kind) else {
@@ -48,6 +49,24 @@ final class UnlockRuleEngine {
                     userInfo: ["kind": t.kind, "id": t.id]
                 )
             }
+            // 兼容现有 UnlockRules：harvest id 与新知识专题 id 共用稳定 ID。
+            if kind == .harvest, ContentStore.shared.knowledgeTopic(id: t.id) != nil {
+                LearningProgressCoordinator.shared.recordDiscovery(
+                    topicId: t.id,
+                    sourceId: event
+                )
+            }
+        }
+    }
+
+    private func recordLearningEvidenceIfNeeded(_ event: String) {
+        for prefix in ["poi.discover.", "collectible.get.", "challenge.complete."] {
+            guard event.hasPrefix(prefix) else { continue }
+            let sourceId = String(event.dropFirst(prefix.count))
+            if !sourceId.isEmpty {
+                LearningProgressCoordinator.shared.recordEvidence(sourceId: sourceId)
+            }
+            return
         }
     }
 

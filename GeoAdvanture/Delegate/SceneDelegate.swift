@@ -18,9 +18,19 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window = UIWindow(windowScene: windowScene)
         window?.rootViewController = navigation
         window?.makeKeyAndVisible()
-        
-        // 初始化全局悬浮 AI 助手
-        AIAvatarWindowManager.shared.setup(windowScene: windowScene)
+
+        // AI 头像与 Debug 入口都挂在主 Window 的穿透 overlay 上，避免额外 UIWindow 拦截全屏触摸。
+        if let window {
+            AIAvatarWindowManager.shared.setup(hostWindow: window)
+            #if DEBUG
+            if let overlay = AIAvatarWindowManager.shared.overlayHostView {
+                DebugEntry.install(in: overlay)
+            }
+            #endif
+            // 启动页的唯一职责是进入首页。此时隐藏所有悬浮控件，避免
+            // 它们参与首次触摸的命中测试；进入首页后再由启动页统一显示。
+            AIAvatarWindowManager.shared.hide()
+        }
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {
@@ -40,4 +50,3 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
 
 }
-

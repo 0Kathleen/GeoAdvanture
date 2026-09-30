@@ -25,7 +25,7 @@ enum NotebookLayout {
 
     static let bookmarkBarTop: CGFloat = 23
     static let bookmarkBarLeading: CGFloat = 730
-    static let bookmarkBarSize = CGSize(width: 40, height: 330)
+    static let bookmarkBarSize = CGSize(width: 44, height: 336)
 
     static let bookmarkSize = CGSize(width: 32, height: 80)
     static let bookmarkVerSpacing: CGFloat = 5
@@ -64,4 +64,3 @@ enum NotebookLayout {
         static let lavaTop: CGFloat = 281
     }
 }
-

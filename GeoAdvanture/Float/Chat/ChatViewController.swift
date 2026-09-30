@@ -17,6 +17,10 @@ class ChatViewController: UIViewController {
     private let manager = AIChatManager()
 
     var onShrinkWindow: (() -> Void)?
+    /// 由首页或知识专题入口注入，避免每次问答都脱离当前学习场景。
+    var contextPrompt: String?
+    /// 从知识点进入时，直接以这个问题开启对话。
+    var initialQuestion: String?
 
     private var bottomInputConstraint: Constraint?
     private var hasTriggeredInitialAutoRequest = false
@@ -49,12 +53,17 @@ class ChatViewController: UIViewController {
         super.viewDidAppear(animated)
         guard !hasTriggeredInitialAutoRequest else { return }
         hasTriggeredInitialAutoRequest = true
-        manager.addGreetingMessage()
+        if let initialQuestion, !initialQuestion.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            manager.sendUserMessage(initialQuestion)
+        } else {
+            manager.addGreetingMessage()
+        }
     }
 
     // MARK: - config
     private func setupManager() {
         manager.delegate = self
+        manager.contextPrompt = contextPrompt
     }
 
     private func configUI() {
@@ -159,9 +168,9 @@ class ChatViewController: UIViewController {
 
     private lazy var titleLabel: UILabel = {
         let label = UILabel()
-        label.font = UIFont(name: "FZCKJW--GB1-0", size: 20)
-        label.text = "地理学习助手"
-        label.textColor = AIChatTextColors.textField
+        label.font = GeoTheme.Typography.heading(size: 20)
+        label.text = "岩小探 · 地质学习助手"
+        label.textColor = GeoTheme.Color.ink
         label.textAlignment = .center
         return label
     }()
@@ -188,14 +197,14 @@ class ChatViewController: UIViewController {
         let textfield = UITextField()
         textfield.background = UIImage(named: "textLabelBackground")
         textfield.attributedPlaceholder = NSAttributedString(
-            string: "请输入......",
+            string: "问问地球里的秘密…",
             attributes: [
                 .foregroundColor: AIChatTextColors.textFieldPlaceholder,
-                .font: UIFont.systemFont(ofSize: 15)
+                .font: GeoTheme.Typography.body(size: 15)
             ]
         )
         textfield.textColor = AIChatTextColors.textField
-        textfield.font = .systemFont(ofSize: 15)
+        textfield.font = GeoTheme.Typography.body(size: 15)
         textfield.returnKeyType = .send
         textfield.delegate = self
         let leftPadding = UIView(frame: CGRect(x: 0, y: 0, width: AIChatLayout.textFieldLeftPadding, height: 40))

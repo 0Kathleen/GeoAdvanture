@@ -2,217 +2,282 @@
 //  NotebookIntroViewController.swift
 //  GeoAdvanture
 //
+//  “认识”页：先建立圈层整体身份，再进入可追踪的局部探索问题。
+//
 
 import UIKit
 import SnapKit
 
-class NotebookIntroViewController: UIViewController {
+final class NotebookIntroViewController: UIViewController {
 
     private let viewModel: NotebookViewModel
-    private let cellId = "NoteCell"
-    private var dataSource: [NoteModel] = []
+    weak var notebookNavigationDelegate: NotebookPageNavigationDelegate?
 
-    private var carouselTimer: Timer?
-    private var carouselItems: [NotebookCarouselSlide] = []
-    private var carouselIndex: Int = 0
+    private var learningData: NotebookLearningIntroViewData?
+    private var expandedInquiryIds: Set<String> = []
+    private var focusedInquiryId: String?
+    private var overviewCard: UIView?
 
-    private let leftNotebookContainerView: UIView = {
-        let v = UIView()
-        v.backgroundColor = .clear
-        return v
+    private let leftPage = UIView()
+    private let rightPage = UIView()
+
+    private let overviewContainer = UIView()
+
+    private let inquirySectionLabel: UILabel = {
+        let label = UILabel()
+        label.text = "下面，从这三个问题来探索一下吧"
+        label.font = GeoTheme.Typography.heading(size: 13)
+        label.textColor = GeoTheme.Color.mauve
+        return label
     }()
 
-    private let leftHeaderImageView: UIImageView = {
-        let v = UIImageView(image: UIImage(named: NotebookResourceNames.leftHeaderImageLayer1))
-        v.contentMode = .scaleAspectFit
-        return v
+    private let overallProgressLabel: UILabel = {
+        let label = UILabel()
+        label.font = GeoTheme.Typography.caption(size: 12)
+        label.textColor = GeoTheme.Color.ink
+        label.textAlignment = .right
+        return label
     }()
 
-    private let circleFrameImageView: UIImageView = {
-        let v = UIImageView(image: UIImage(named: NotebookResourceNames.realImageCircleFrame))
-        v.contentMode = .scaleAspectFit
-        return v
-    }()
-
-    private let circleCaptionLabel: UILabel = {
-        let l = UILabel()
-        l.numberOfLines = 0
-        l.textAlignment = .center
-        return l
-    }()
-
-    private lazy var carouselCollectionView: UICollectionView = {
-        let layout = UICollectionViewFlowLayout()
-        layout.scrollDirection = .horizontal
-        layout.minimumLineSpacing = 0
-        layout.minimumInteritemSpacing = 0
-        let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        cv.backgroundColor = .clear
-        cv.isPagingEnabled = true
-        cv.showsHorizontalScrollIndicator = false
-        cv.dataSource = self
-        cv.delegate = self
-        cv.allowsSelection = true
-        cv.register(CarouselCell.self, forCellWithReuseIdentifier: CarouselCell.reuseId)
-        return cv
-    }()
-
-    private let rightNotebookContainerView: UIView = {
-        let v = UIView()
-        v.backgroundColor = .clear
-        return v
+    private let overallProgressView: UIProgressView = {
+        let progress = UIProgressView(progressViewStyle: .default)
+        progress.trackTintColor = GeoTheme.Color.paperMuted.withAlphaComponent(0.45)
+        progress.progressTintColor = GeoTheme.Color.success
+        return progress
     }()
 
     private lazy var tableView: UITableView = {
-        let tv = UITableView()
-        tv.delegate = self
-        tv.dataSource = self
-        tv.register(NoteCell.self, forCellReuseIdentifier: cellId)
-        tv.backgroundColor = .clear
-        tv.separatorStyle = .none
-        tv.rowHeight = UITableView.automaticDimension
-        tv.estimatedRowHeight = 180
-        tv.showsVerticalScrollIndicator = true
-        tv.contentInsetAdjustmentBehavior = .never
-        if #available(iOS 15.0, *) {
-            tv.sectionHeaderTopPadding = 0
-        }
-        return tv
+        let table = UITableView(frame: .zero, style: .plain)
+        table.delegate = self
+        table.dataSource = self
+        table.register(InquiryTopicCell.self, forCellReuseIdentifier: InquiryTopicCell.reuseId)
+        table.backgroundColor = .clear
+        table.separatorStyle = .none
+        table.rowHeight = UITableView.automaticDimension
+        table.estimatedRowHeight = 112
+        table.showsVerticalScrollIndicator = true
+        table.contentInsetAdjustmentBehavior = .never
+        return table
     }()
 
-    // MARK: - init
+    private var placeholderView: NotebookPlaceholderView?
+
     init(viewModel: NotebookViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
 
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .clear
         setupLayout()
-        configureForLayer()
+        refreshContent()
     }
 
-    deinit {
-        carouselTimer?.invalidate()
-    }
-
-    // MARK: - configure
-    private func configureForLayer() {
-        let data = viewModel.fetchIntroData()
-        
-        carouselItems = data.carouselSlides
-        circleCaptionLabel.attributedText = data.circleAttributedCaption
-        dataSource = data.introListRows
-        
-        carouselCollectionView.reloadData()
-        startCarouselIfNeeded()
-        tableView.reloadData()
-    }
-
-    private func startCarouselIfNeeded() {
-        carouselTimer?.invalidate()
-        carouselTimer = nil
-        guard carouselItems.count > 1 else { return }
-        carouselTimer = Timer.scheduledTimer(withTimeInterval: 2.5, repeats: true) { [weak self] _ in
-            guard let self else { return }
-            let next = (self.carouselIndex + 1) % self.carouselItems.count
-            self.carouselIndex = next
-            let x = CGFloat(next) * self.carouselCollectionView.bounds.width
-            self.carouselCollectionView.setContentOffset(CGPoint(x: x, y: 0), animated: true)
-        }
-    }
-    
-    // MARK: - layout
     private func setupLayout() {
-        view.addSubview(leftNotebookContainerView)
-        leftNotebookContainerView.addSubview(leftHeaderImageView)
-        leftNotebookContainerView.addSubview(carouselCollectionView)
-        leftNotebookContainerView.addSubview(circleFrameImageView)
-        leftNotebookContainerView.addSubview(circleCaptionLabel)
-
-        view.addSubview(rightNotebookContainerView)
-        rightNotebookContainerView.addSubview(tableView)
-
-        leftNotebookContainerView.snp.makeConstraints { make in
+        view.addSubview(leftPage)
+        view.addSubview(rightPage)
+        leftPage.snp.makeConstraints { make in
             make.leading.top.bottom.equalToSuperview()
             make.width.equalTo(NotebookLayout.leftContentWidth)
         }
-        leftHeaderImageView.snp.makeConstraints { make in
-            make.top.equalToSuperview()
-            make.leading.trailing.equalToSuperview()
-            make.height.equalTo(NotebookLayout.leftViewSize.height)
-        }
-        circleFrameImageView.snp.makeConstraints { make in
-            make.top.equalToSuperview().offset(NotebookLayout.circleTop)
-            make.leading.equalToSuperview()
-            make.size.equalTo(CGSize(width: NotebookLayout.circleDiameter + 18, height: NotebookLayout.circleDiameter + 18))
-        }
-        carouselCollectionView.snp.makeConstraints { make in
-            make.center.equalTo(circleFrameImageView)
-            make.size.equalTo(CGSize(width: NotebookLayout.circleDiameter, height: NotebookLayout.circleDiameter))
-        }
-        carouselCollectionView.clipsToBounds = true
-        carouselCollectionView.layer.cornerRadius = NotebookLayout.circleDiameter / 2
-
-        circleCaptionLabel.snp.makeConstraints { make in
-            make.top.equalTo(circleFrameImageView.snp.bottom).offset(8)
-            make.leading.trailing.equalToSuperview().inset(4)
-            make.bottom.lessThanOrEqualToSuperview()
-        }
-
-        rightNotebookContainerView.snp.makeConstraints { make in
-            make.leading.equalTo(leftNotebookContainerView.snp.trailing).offset(NotebookLayout.contentHorizontalInset)
+        rightPage.snp.makeConstraints { make in
+            make.leading.equalTo(leftPage.snp.trailing).offset(NotebookLayout.contentHorizontalInset)
             make.top.trailing.bottom.equalToSuperview()
         }
-        tableView.snp.makeConstraints { make in
-            make.edges.equalToSuperview()
+
+        rightPage.addSubview(overviewContainer)
+        overviewContainer.snp.makeConstraints { make in
+            make.top.leading.trailing.equalToSuperview().inset(2)
         }
+
+        rightPage.addSubview(inquirySectionLabel)
+        inquirySectionLabel.snp.makeConstraints { make in
+            make.top.equalTo(overviewContainer.snp.bottom).offset(8)
+            make.leading.equalToSuperview().offset(2)
+        }
+
+        rightPage.addSubview(overallProgressLabel)
+        rightPage.addSubview(overallProgressView)
+        rightPage.addSubview(tableView)
+        overallProgressLabel.snp.makeConstraints { make in
+            make.centerY.equalTo(inquirySectionLabel)
+            make.trailing.equalToSuperview().inset(6)
+            make.leading.greaterThanOrEqualTo(inquirySectionLabel.snp.trailing).offset(8)
+        }
+        overallProgressView.snp.makeConstraints { make in
+            make.top.equalTo(inquirySectionLabel.snp.bottom).offset(5)
+            make.leading.trailing.equalToSuperview().inset(4)
+        }
+        tableView.snp.makeConstraints { make in
+            make.top.equalTo(overallProgressView.snp.bottom).offset(6)
+            make.leading.trailing.bottom.equalToSuperview()
+        }
+    }
+
+    private func render() {
+        guard let data = learningData else { return }
+        overviewCard?.removeFromSuperview()
+        let newOverview = LayerOverviewCardView(
+            overview: data.overview,
+            title: nil)
+        overviewContainer.addSubview(newOverview)
+        newOverview.snp.makeConstraints { $0.edges.equalToSuperview() }
+        overviewCard = newOverview
+        let hasInquiries = !data.inquiries.isEmpty
+        overallProgressLabel.text = hasInquiries
+            ? "探索进度  \(data.discoveredCount)/\(data.totalCount)"
+            : "圈层知识预览"
+        overallProgressView.isHidden = !hasInquiries
+        overallProgressView.progress = data.totalCount == 0
+            ? 0
+            : Float(data.discoveredCount) / Float(data.totalCount)
+
+        rebuildLeftPage(data)
+
+        if data.inquiries.isEmpty {
+            showPlaceholder()
+        } else {
+            placeholderView?.removeFromSuperview()
+            placeholderView = nil
+            tableView.isHidden = false
+            if expandedInquiryIds.isEmpty, let first = data.inquiries.first {
+                expandedInquiryIds.insert(first.topic.id)
+            }
+            tableView.reloadData()
+            restoreFocusedInquiry(animated: false)
+        }
+    }
+
+    private func rebuildLeftPage(_ data: NotebookLearningIntroViewData) {
+        leftPage.subviews.forEach { $0.removeFromSuperview() }
+
+        let imageView = UIImageView(image: UIImage(named: introImageAsset(for: data.layerId)))
+        imageView.contentMode = .scaleAspectFill
+        imageView.clipsToBounds = true
+        imageView.layer.cornerRadius = GeoTheme.Radius.card
+        imageView.backgroundColor = .clear
+        imageView.snp.makeConstraints { $0.height.equalTo(132) }
+
+        if imageView.image == nil {
+            let placeholder = UIImageView(image: UIImage(systemName: "photo.on.rectangle.angled"))
+            placeholder.tintColor = GeoTheme.Color.inkMuted
+            placeholder.contentMode = .scaleAspectFit
+            imageView.addSubview(placeholder)
+            placeholder.snp.makeConstraints { make in
+                make.center.equalToSuperview()
+                make.width.height.equalTo(58)
+            }
+        }
+
+        let stack = UIStackView(arrangedSubviews: [imageView])
+        stack.axis = .vertical
+        stack.spacing = 8
+        if let profile = data.profile {
+            stack.addArrangedSubview(LayerProfileCardView(profile: profile, overview: data.overview))
+        }
+        leftPage.addSubview(stack)
+        stack.snp.makeConstraints { make in
+            make.top.leading.trailing.equalToSuperview().inset(8)
+            make.bottom.lessThanOrEqualToSuperview().inset(8)
+        }
+    }
+
+    private func introImageAsset(for layerId: String) -> String {
+        switch layerId {
+        case "mantle": return "intro_mantle_overview"
+        case "core", "outer_core", "inner_core": return "intro_core_overview"
+        default: return "intro_crust_overview"
+        }
+    }
+
+    private func showPlaceholder() {
+        tableView.isHidden = true
+        placeholderView?.removeFromSuperview()
+        let placeholder = NotebookPlaceholderView(
+            emoji: "🔎",
+            title: "先认识\(viewModel.layerName)",
+            message: "观察左侧圈层图，记住它在地球内部的位置。\n本期完整探索从地壳开始。")
+        rightPage.addSubview(placeholder)
+        placeholder.snp.makeConstraints { make in
+            make.top.equalTo(overallProgressView.snp.bottom).offset(8)
+            make.leading.trailing.bottom.equalToSuperview()
+        }
+        placeholderView = placeholder
+    }
+
+    private func restoreFocusedInquiry(animated: Bool) {
+        guard let id = focusedInquiryId,
+              let index = learningData?.inquiries.firstIndex(where: { $0.topic.id == id }) else { return }
+        tableView.scrollToRow(at: IndexPath(row: index, section: 0), at: .middle, animated: animated)
+    }
+
+    private func openMap(for row: NotebookInquiryViewData) {
+        guard let poiId = row.nextPOIId else { return }
+        notebookNavigationDelegate?.notebookPageRequestsNavigation(.poi(poiId), animated: true)
+    }
+}
+
+// MARK: - NotebookPageContent
+extension NotebookIntroViewController: NotebookPageContent {
+    func refreshContent() {
+        guard isViewLoaded else { return }
+        learningData = viewModel.fetchLearningIntroData()
+        render()
+    }
+
+    @discardableResult
+    func focus(on target: NotebookFocusTarget, animated: Bool) -> Bool {
+        guard let data = learningData else { return false }
+        let inquiry: NotebookInquiryViewData?
+        switch target {
+        case let .inquiry(id):
+            inquiry = data.inquiries.first { $0.topic.id == id }
+        case let .knowledgeTopic(id):
+            inquiry = data.inquiries.first { $0.topic.knowledgeTopicIds.contains(id) }
+        case let .poi(id):
+            inquiry = data.inquiries.first { $0.topic.linkedPOIIds.contains(id) }
+        }
+        guard let inquiry else { return false }
+        focusedInquiryId = inquiry.topic.id
+        expandedInquiryIds.insert(inquiry.topic.id)
+        tableView.reloadData()
+        restoreFocusedInquiry(animated: animated)
+        return true
     }
 }
 
 // MARK: - UITableView
-extension NotebookIntroViewController: UITableViewDelegate, UITableViewDataSource {
-
+extension NotebookIntroViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        dataSource.count
+        learningData?.inquiries.count ?? 0
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath) as! NoteCell
-        cell.configure(model: dataSource[indexPath.row])
-        return cell
-    }
-}
-
-// MARK: - Carousel
-extension NotebookIntroViewController: UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
-
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        max(1, carouselItems.count)
-    }
-
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CarouselCell.reuseId, for: indexPath) as! CarouselCell
-        let slide: NotebookCarouselSlide? = indexPath.item < carouselItems.count ? carouselItems[indexPath.item] : nil
-        cell.configure(slide: slide)
+        let cell = tableView.dequeueReusableCell(
+            withIdentifier: InquiryTopicCell.reuseId,
+            for: indexPath) as! InquiryTopicCell
+        guard let row = learningData?.inquiries[indexPath.row] else { return cell }
+        let id = row.topic.id
+        cell.configure(
+            data: row,
+            number: indexPath.row + 1,
+            expanded: expandedInquiryIds.contains(id),
+            focused: focusedInquiryId == id)
+        cell.onExplore = { [weak self] in self?.openMap(for: row) }
         return cell
     }
 
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        collectionView.bounds.size
-    }
-
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        // 禁用点击展开图片功能
-    }
-
-    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-        guard scrollView === carouselCollectionView, scrollView.bounds.width > 0 else { return }
-        carouselIndex = Int(round(scrollView.contentOffset.x / scrollView.bounds.width))
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        guard let row = learningData?.inquiries[indexPath.row] else { return }
+        let id = row.topic.id
+        if expandedInquiryIds.contains(id) {
+            expandedInquiryIds.remove(id)
+        } else {
+            expandedInquiryIds.insert(id)
+        }
+        tableView.reloadRows(at: [indexPath], with: .automatic)
     }
 }

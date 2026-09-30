@@ -1,0 +1,23 @@
+[
+  {
+    "id": "instr_thermal",
+    "name": "透热魔镜",
+    "icon": "instr_thermal",
+    "perceptionTag": "heat",
+    "funFact": "戴上它，看不见的热就会变成一片彩色，藏在地下的温泉一下就露馅啦！"
+  },
+  {
+    "id": "instr_seismic",
+    "name": "地心回声棒",
+    "icon": "instr_seismic",
+    "perceptionTag": "seismic",
+    "funFact": "对着地球敲一敲，听回声弹回来的样子，就能猜出地球肚子里长什么样。"
+  },
+  {
+    "id": "instr_magnetic",
+    "name": "磁力显形镜",
+    "icon": "instr_magnetic",
+    "perceptionTag": "magnetic",
+    "funFact": "它能让看不见的磁力线现出原形，像给磁铁画出隐形的手臂。"
+  }
+]

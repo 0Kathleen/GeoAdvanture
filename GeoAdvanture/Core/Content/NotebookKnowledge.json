@@ -4,6 +4,12 @@
       "id": "crust",
       "title": "地壳",
       "tagline": "地球的蛋壳",
+      "profile": {
+        "depthRange": "0 – 35 km",
+        "temperature": "0 – 500 ℃",
+        "composition": "岩石 · 土壤",
+        "state": "坚硬固体"
+      },
       "carouselSlides": [
         {
           "imageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Earth_internal_structure.jpg/1024px-Earth_internal_structure.jpg",
@@ -69,6 +75,12 @@
       "id": "mantle",
       "title": "地幔",
       "tagline": "地球的火热夹心",
+      "profile": {
+        "depthRange": "35 – 2900 km",
+        "temperature": "500 – 4000 ℃",
+        "composition": "硅酸盐岩石",
+        "state": "固态(可缓慢流动)"
+      },
       "carouselSlides": [
         {
           "imageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Earth_internal_structure.jpg/1024px-Earth_internal_structure.jpg",
@@ -88,6 +100,12 @@
       "id": "core",
       "title": "地核",
       "tagline": "地球的炽热心脏",
+      "profile": {
+        "depthRange": "2900 – 6371 km",
+        "temperature": "4000 – 6000 ℃",
+        "composition": "铁 · 镍",
+        "state": "外液态 · 内固态"
+      },
       "carouselSlides": [
         {
           "imageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Earth_internal_structure.jpg/1024px-Earth_internal_structure.jpg",

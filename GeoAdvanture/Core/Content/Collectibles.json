@@ -1,0 +1,50 @@
+[
+  {
+    "id": "collect_igneous",
+    "name": "火成岩",
+    "category": "rock",
+    "image": "collect_igneous",
+    "worldId": "crust",
+    "funFact": "岩浆冷却凝固而成，花岗岩和玄武岩都是它的成员。"
+  },
+  {
+    "id": "collect_sedimentary",
+    "name": "沉积岩",
+    "category": "rock",
+    "image": "collect_sedimentary",
+    "worldId": "crust",
+    "funFact": "由泥沙层层沉积压实而成，常常藏着化石。"
+  },
+  {
+    "id": "collect_quartz",
+    "name": "石英晶体",
+    "category": "mineral",
+    "image": "collect_quartz",
+    "worldId": "crust",
+    "funFact": "石英常形成规则晶体，鉴定它不能只看颜色，还要观察硬度、光泽和晶形。"
+  },
+  {
+    "id": "collect_metamorphic",
+    "name": "变质岩",
+    "category": "rock",
+    "image": "collect_metamorphic",
+    "worldId": "crust",
+    "funFact": "原有岩石在高温高压下被改造而成，大理岩就是石灰岩变来的。"
+  },
+  {
+    "id": "collect_diamond",
+    "name": "钻石",
+    "category": "mineral",
+    "image": "collect_diamond",
+    "worldId": "mantle",
+    "funFact": "地球上最硬的天然矿物，本质是被极压压紧的碳。"
+  },
+  {
+    "id": "collect_iron",
+    "name": "高压结晶铁",
+    "category": "mineral",
+    "image": "collect_iron",
+    "worldId": "inner_core",
+    "funFact": "内核虽然极热，却因压力巨大而是固态的铁镍晶体。"
+  }
+]
