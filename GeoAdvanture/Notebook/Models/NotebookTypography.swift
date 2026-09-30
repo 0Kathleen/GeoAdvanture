@@ -148,29 +148,10 @@ enum NotebookTypography {
         GeoTheme.Typography.brandTitle(size: size)
     }
 
-    // MARK: - 右侧列表 NoteCell
     enum ListCell {
         static let titleColor = GeoTheme.Color.ink
         static let bodyColor = GeoTheme.Color.ink
-
         static let titleFont = GeoTheme.Typography.heading(size: 18)
         static let bodyFont = GeoTheme.Typography.body()
-
-        static let titleContentSpacing: CGFloat = 5
-        static let titleInnerInsets = UIEdgeInsets(top: 6, left: 12, bottom: 6, right: 12)
-
-        static let contentTitleImageName = "contentTitle"
-        static let outerInsets = UIEdgeInsets(top: 12, left: 12, bottom: 12, right: 12)
-
-        static func attributedBody(_ plainText: String) -> NSAttributedString {
-            let ps = NSMutableParagraphStyle()
-            ps.lineBreakMode = .byWordWrapping
-            ps.lineSpacing = 6 // 增加行间距，使文本看起来更正常舒适
-            return NSAttributedString(string: plainText, attributes: [
-                .font: bodyFont,
-                .foregroundColor: bodyColor,
-                .paragraphStyle: ps
-            ])
-        }
     }
 }

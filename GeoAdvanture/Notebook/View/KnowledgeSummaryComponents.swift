@@ -8,58 +8,6 @@
 import UIKit
 import SnapKit
 
-final class KnowledgeLearningPathView: UIView {
-
-    init(stage: KnowledgeMasteryStage) {
-        super.init(frame: .zero)
-        backgroundColor = GeoTheme.Color.paperCard.withAlphaComponent(0.55)
-        layer.cornerRadius = GeoTheme.Radius.control
-
-        let steps: [(String, KnowledgeMasteryStage)] = [
-            ("找到证据", .discovered),
-            ("讲清过程", .understood),
-            ("换处应用", .applied)
-        ]
-        let row = UIStackView()
-        row.axis = .horizontal
-        row.alignment = .center
-        row.distribution = .fill
-        row.spacing = 5
-        for (index, item) in steps.enumerated() {
-            let reached = stage >= item.1
-            let label = UILabel()
-            label.text = (reached ? "✓ " : "") + item.0
-            label.font = GeoTheme.Typography.caption(size: 10)
-            label.textAlignment = .center
-            label.textColor = reached ? .white : GeoTheme.Color.inkMuted
-            label.backgroundColor = reached
-                ? GeoTheme.Color.success
-                : UIColor.white.withAlphaComponent(0.52)
-            label.layer.cornerRadius = 10
-            label.clipsToBounds = true
-            label.snp.makeConstraints { make in
-                make.height.equalTo(22)
-                make.width.greaterThanOrEqualTo(68)
-            }
-            row.addArrangedSubview(label)
-            if index < steps.count - 1 {
-                let arrow = UIImageView(image: UIImage(systemName: "chevron.right"))
-                arrow.tintColor = GeoTheme.Color.inkMuted
-                arrow.contentMode = .scaleAspectFit
-                arrow.snp.makeConstraints { $0.width.equalTo(9) }
-                row.addArrangedSubview(arrow)
-            }
-        }
-        addSubview(row)
-        row.snp.makeConstraints { make in
-            make.center.equalToSuperview()
-            make.top.bottom.equalToSuperview().inset(6)
-        }
-    }
-
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
-}
-
 final class KnowledgeConclusionView: UIView {
 
     init(steps: [CausalStep], understood: Bool) {

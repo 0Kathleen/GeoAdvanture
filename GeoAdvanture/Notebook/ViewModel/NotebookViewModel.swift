@@ -5,30 +5,9 @@
 //  负责对 NotebookContent 提供的数据进行二次处理与组装，为各个子页面提供渲染所需的干净数据结构。
 //
 
-import UIKit
+import Foundation
 
 // MARK: - View Data Structs
-
-/// 书签 intro 数据
-struct NotebookIntroViewData {
-    let circleAttributedCaption: NSAttributedString?
-    let carouselSlides: [NotebookCarouselSlide]
-    let profile: LayerProfile?
-    let layerId: String
-    let knowledgeRows: [IntroKnowledgeRow]
-}
-
-struct HarvestCardData {
-    let title: String
-    let content: String
-}
-
-struct HarvestSectionData {
-    let id: String
-    let title: String
-    let cards: [HarvestCardData]
-    let isUnlocked: Bool
-}
 
 struct NotebookInquiryViewData {
     let topic: InquiryTopic
@@ -57,8 +36,6 @@ struct NotebookLearningIntroViewData {
     let layerName: String
     let profile: LayerProfile?
     let overview: LayerOverviewViewData
-    let heroQuestion: String
-    let heroSummary: String
     let discoveredCount: Int
     let totalCount: Int
     let inquiries: [NotebookInquiryViewData]
@@ -157,64 +134,8 @@ class NotebookViewModel {
             layerName: layerName,
             profile: knowledge?.profile,
             overview: layerOverviewData,
-            heroQuestion: layer.heroQuestion,
-            heroSummary: layer.heroSummary,
             discoveredCount: discoveredCount,
             totalCount: allTopicIds.count,
             inquiries: inquiryRows)
-    }
-    
-    func fetchIntroData() -> NotebookIntroViewData {
-        let slides = knowledge?.carouselSlides ?? []
-        let rows = NotebookContent.introKnowledgeRows(forLayer: layerIndex, bidPrefix: "L\(layerIndex)_")
-
-        let caption = NSMutableAttributedString()
-        if let k = knowledge {
-            let titleFont = NotebookTypography.topTitleFont(size: 32)
-            let suffixFont = NotebookTypography.topTitleFont(size: 20)
-
-            caption.append(NSAttributedString(string: k.title, attributes: [
-                .font: titleFont,
-                .foregroundColor: UIColor.label
-            ]))
-            caption.append(NSAttributedString(string: "--\(k.tagline)", attributes: [
-                .font: suffixFont,
-                .foregroundColor: UIColor.label
-            ]))
-        }
-
-        return NotebookIntroViewData(
-            circleAttributedCaption: caption.length > 0 ? caption : nil,
-            carouselSlides: slides,
-            profile: knowledge?.profile,
-            layerId: knowledge?.layerId ?? "crust",
-            knowledgeRows: rows
-        )
-    }
-    
-    func fetchHarvestData() -> [HarvestSectionData] {
-        guard let harvests = knowledge?.harvests else { return [] }
-        
-        var sections: [HarvestSectionData] = []
-        for harvest in harvests {
-            let progress = GameProgressManager.shared
-            let isUnlocked = progress.isKnowledgeDiscovered(id: harvest.id)
-                || progress.isHarvestUnlocked(id: harvest.id)
-
-            // Step 1：旧 UI 暂时保留，但数据已经改为结构化读取，不再解析【】长字符串。
-            let cards: [HarvestCardData]
-            if let topic = ContentStore.shared.knowledgeTopic(id: harvest.id) {
-                cards = topic.summaryCards.map {
-                    HarvestCardData(title: $0.title, content: $0.content)
-                }
-            } else {
-                // 非地壳旧数据的兼容兜底；后续圈层迁移到 NotebookLearning 后移除。
-                cards = [HarvestCardData(title: "知识要点", content: harvest.content)]
-            }
-            
-            sections.append(HarvestSectionData(id: harvest.id, title: harvest.title, cards: cards, isUnlocked: isUnlocked))
-        }
-        
-        return sections
     }
 }

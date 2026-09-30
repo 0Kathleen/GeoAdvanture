@@ -230,8 +230,8 @@ public class AICompanionViewModel {
         // 2. 组装 Prompt
         let errorDescriptions = errors.joined(separator: "，并且")
         let prompt = """
-        当前用户正在进行的任务是：【\\(context)】
-        但是用户连续犯了以下错误：【\\(errorDescriptions)】
+        当前用户正在进行的任务是：【\(context)】
+        但是用户连续犯了以下错误：【\(errorDescriptions)】
         请用一句话（30字以内）亲切地启发他，不要直接告诉他最终答案，最好以疑问句结尾引导他自己思考。
         """
         
